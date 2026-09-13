@@ -56,8 +56,12 @@ noncomputable def placeDegree (v : PlaceA k K) : ℕ :=
 theorem placeDegree_pos (v : PlaceA k K) : 0 < placeDegree k K v := by
   rcases v with v | v
   · change 0 < Module.finrank k (ringOfIntegers k K ⧸ v.asIdeal)
+    let : Module.IsTorsionFree k (ringOfIntegers k K ⧸ v.asIdeal) :=
+      DivisionSemiring.to_moduleIsTorsionFree
     exact Module.finrank_pos
   · change 0 < Module.finrank k (infiniteIntegers k K ⧸ v.asIdeal)
+    let : Module.IsTorsionFree k (infiniteIntegers k K ⧸ v.asIdeal) :=
+      DivisionSemiring.to_moduleIsTorsionFree
     exact Module.finrank_pos
 
 omit [IsScalarTower k[X] k⟮X⟯ K] in
