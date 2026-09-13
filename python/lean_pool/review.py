@@ -75,6 +75,7 @@ import base64
 import difflib
 import hashlib
 import json
+import logging
 import os
 import re
 import secrets
@@ -93,6 +94,8 @@ from urllib.parse import quote
 from openai import APIStatusError, BadRequestError, OpenAI, RateLimitError
 
 from lean_pool import challenge, codex_review, prior_art, review_portions
+
+logger = logging.getLogger(__name__)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_RULES_PATH = REPO_ROOT / ".github" / "REVIEW_RULES.md"
@@ -1303,9 +1306,19 @@ class _ReviewSession:
 
     def send(self, messages: list[dict[str, str]]) -> ReviewResult:
         """Record attempted and completed calls independently."""
-        with self.lock:
-            self.attempts += 1
-        result = _send_review(self.model, messages, self.effort)
+        for attempt in range(3):
+            with self.lock:
+                self.attempts += 1
+            try:
+                result = _send_review(self.model, messages, self.effort)
+                break
+            except Exception as error:
+                if attempt == 2 or not _response_format_failure(error):
+                    raise
+                logger.warning(
+                    "Malformed review JSON; retrying the same input (attempt %d of 3).",
+                    attempt + 2,
+                )
         with self.lock:
             self.completed.append(result)
             if destination := os.environ.get("REVIEW_EVIDENCE_PATH"):
@@ -1323,6 +1336,28 @@ class _ReviewSession:
         return replace(
             result, usage=usage, calls=self.attempts, requests=tuple(self.completed)
         )
+
+
+def _response_format_failure(error: Exception) -> bool:
+    """Recognize malformed model JSON without retrying unrelated worker errors."""
+    if isinstance(error, json.JSONDecodeError):
+        return True
+    message = str(error).lower()
+    return (
+        isinstance(error, RuntimeError)
+        and "azure codex review failed:" in message
+        and re.search(r"line \d+ column \d+ \(char \d+\)", message) is not None
+        and any(
+            marker in message
+            for marker in (
+                "expecting ",
+                "unterminated string",
+                "invalid \\",
+                "invalid control character",
+                "extra data",
+            )
+        )
+    )
 
 
 def _context_rejection(error: Exception) -> bool:

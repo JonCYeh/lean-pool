@@ -718,3 +718,76 @@ def test_unknown_reopened_obligation_cannot_approve():
         {"verdict": "pass", "reopened_obligations": ["invented"]}, {}, {}
     )
     assert review_portions.enforce_resolutions(updated, {})["verdict"] == "discuss"
+
+
+@pytest.mark.parametrize("azure", [False, True])
+def test_response_format_retry_preserves_accounting(monkeypatch, azure):
+    """Malformed JSON retries only the same request and discloses unmetered work."""
+    calls = []
+
+    def send(model, messages, effort):
+        calls.append(messages)
+        if len(calls) < 3:
+            if azure:
+                raise RuntimeError(
+                    "Azure Codex review failed: Expecting ',' delimiter: "
+                    "line 1 column 2 (char 1)"
+                )
+            raise json.JSONDecodeError("Expecting ',' delimiter", "{broken}", 1)
+        return result({"verdict": "pass"})
+
+    monkeypatch.setattr(review, "_send_review", send)
+    session = review._ReviewSession(review.DEFAULT_MODEL, "xhigh")
+    messages = [{"role": "user", "content": "the original input"}]
+    answer = session.accounted(session.send(messages))
+    assert calls == [messages, messages, messages]
+    assert answer.calls == 3
+    assert len(answer.requests) == 1
+    assert answer.usage is None
+
+
+def test_response_format_retry_is_bounded(monkeypatch):
+    """Persistent malformed output cannot retry indefinitely or approve."""
+
+    def send(*args):
+        raise json.JSONDecodeError("Expecting value", "", 0)
+
+    monkeypatch.setattr(review, "_send_review", send)
+    session = review._ReviewSession(review.DEFAULT_MODEL, "xhigh")
+    with pytest.raises(json.JSONDecodeError):
+        session.send([])
+    assert session.attempts == 3
+    assert session.completed == []
+
+
+def test_format_failure_retries_one_portion_without_repeating_others(monkeypatch):
+    """A formatting error cannot restart all the source work for a rubric."""
+    monkeypatch.setattr(review, "MAX_INPUT_TOKENS", 10_000)
+    calls = {}
+
+    def send(model, messages, effort):
+        user = messages[1]["content"]
+        match = re.search(r"source portion (\d+)/", user)
+        if not match:
+            return result({"verdict": "pass"})
+        number = int(match.group(1))
+        calls[number] = calls.get(number, 0) + 1
+        if number == 1 and calls[number] == 1:
+            raise json.JSONDecodeError("Expecting ',' delimiter", "{broken}", 1)
+        return result(
+            {
+                "verdict": "pass",
+                "evidence_summary": "Local evidence checked",
+                "open_questions": [],
+            }
+        )
+
+    monkeypatch.setattr(review, "_send_review", send)
+    answer = review.request_review(
+        review.DEFAULT_MODEL, "rules", source_diff(), "review"
+    )
+    assert answer.payload["verdict"] == "pass"
+    assert calls[1] == 2
+    assert all(count == 1 for number, count in calls.items() if number != 1)
+    assert len(calls) == answer.portions
+    assert answer.calls == answer.portions + 2
