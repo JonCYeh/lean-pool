@@ -108,17 +108,7 @@ theorem resC1_retype {D D' : RS.Divisor X} {Ω : Opens X} {𝒰 𝒱 : RS.Cech.F
     (hf : f.MemLD D) (hf' : (RS.Cech.resC1 D' τ hτ f).MemLD D) :
     RS.Cech.resC1 D τ hτ (RS.Cech.C1.retype f hf) =
       RS.Cech.C1.retype (RS.Cech.resC1 D' τ hτ f) hf' := by
-  funext p
-  apply Subtype.ext
-  have hL : (RS.Cech.resC1 D τ hτ (RS.Cech.C1.retype f hf) p : RS.MeroGermOn X _) =
-      RS.MeroGermOn.restrict (inf_le_inf (hτ p.1) (hτ p.2))
-        (f (τ p.1, τ p.2) : RS.MeroGermOn X _) := by
-    rw [RS.Cech.resC1_apply, RS.Cech.restrictL_apply_coe, RS.Cech.C1.retype_apply_coe]
-  have hR : (RS.Cech.C1.retype (RS.Cech.resC1 D' τ hτ f) hf' p : RS.MeroGermOn X _) =
-      RS.MeroGermOn.restrict (inf_le_inf (hτ p.1) (hτ p.2))
-        (f (τ p.1, τ p.2) : RS.MeroGermOn X _) := by
-    rw [RS.Cech.C1.retype_apply_coe, RS.Cech.resC1_apply, RS.Cech.restrictL_apply_coe]
-  rw [hL, hR]
+  rfl
 
 omit [T2Space X] [CompactSpace X] [ConnectedSpace X] [T1Space X] [DecidableEq X]
     [IsManifold 𝓘(ℂ, ℂ) ω X] in
@@ -129,23 +119,15 @@ theorem mlClass_res {D D' : RS.Divisor X} {𝒰 𝒱 : RS.Cech.FinCover (⊤ : O
     (hg : (RS.Cech.d0 D' 𝒰 g).MemLD D)
     (hg' : (RS.Cech.d0 D' 𝒱 (RS.Cech.resC0 D' τ hτ g)).MemLD D) :
     RS.Cech.mlClass 𝒰 g hg = RS.Cech.mlClass 𝒱 (RS.Cech.resC0 D' τ hτ g) hg' := by
-  have hd0 : RS.Cech.d0 D' 𝒱 (RS.Cech.resC0 D' τ hτ g) =
-      RS.Cech.resC1 D' τ hτ (RS.Cech.d0 D' 𝒰 g) :=
-    (LinearMap.congr_fun (RS.Cech.resC1_comp_d0 D' τ hτ) g).symm
-  have hg'' : (RS.Cech.resC1 D' τ hτ (RS.Cech.d0 D' 𝒰 g)).MemLD D := hd0 ▸ hg'
-  have key : RS.Cech.resZ1 D τ hτ
-      ⟨RS.Cech.C1.retype (RS.Cech.d0 D' 𝒰 g) hg, RS.Cech.C1.retype_mem_Z1 hg⟩ =
-      ⟨RS.Cech.C1.retype (RS.Cech.d0 D' 𝒱 (RS.Cech.resC0 D' τ hτ g)) hg',
-        RS.Cech.C1.retype_mem_Z1 hg'⟩ := by
-    apply Subtype.ext
-    rw [RS.Cech.resZ1_apply_coe]
-    change RS.Cech.resC1 D τ hτ (RS.Cech.C1.retype (RS.Cech.d0 D' 𝒰 g) hg) =
-      (RS.Cech.C1.retype (RS.Cech.d0 D' 𝒱 (RS.Cech.resC0 D' τ hτ g)) hg' : RS.Cech.C1 D 𝒱)
-    rw [resC1_retype τ hτ (RS.Cech.d0 D' 𝒰 g) hg hg'']
-    congr 1
-    exact hd0.symm
-  simp only [RS.Cech.mlClass]
-  rw [← RS.Cech.toH1_resH1 D τ hτ, RS.Cech.resH1_mk, key]
+  change RS.Cech.toH1 D 𝒰 (RS.Cech.H1Cover.mk D 𝒰 _) =
+    RS.Cech.toH1 D 𝒱 (RS.Cech.H1Cover.mk D 𝒱 _)
+  rw [← RS.Cech.toH1_resH1 D τ hτ, RS.Cech.resH1_mk]
+  apply congrArg (RS.Cech.toH1 D 𝒱)
+  apply congrArg (RS.Cech.H1Cover.mk D 𝒱)
+  apply Subtype.ext
+  change RS.Cech.C1.retype (RS.Cech.resC1 D' τ hτ (RS.Cech.d0 D' 𝒰 g)) _ = _
+  congr 1
+  exact LinearMap.congr_fun (RS.Cech.resC1_comp_d0 D' τ hτ) g
 
 /-! ### The per-point construction: realizing a clean representative -/
 
@@ -208,10 +190,6 @@ theorem d0_inclC0_coe {Ω : Opens X} {𝒰 : RS.Cech.FinCover Ω} {D₁ D₂ : R
     (RS.Cech.d0 D₂ 𝒰 (RS.Cech.inclC0 D₁ 𝒰 h g) p :
         RS.MeroGermOn X ((𝒰.U p.1 ⊓ 𝒰.U p.2 : Opens X) : Set X)) =
       (RS.Cech.d0 D₁ 𝒰 g p : RS.MeroGermOn X ((𝒰.U p.1 ⊓ 𝒰.U p.2 : Opens X) : Set X)) := by
-  rw [RS.Cech.d0_apply, RS.Cech.d0_apply, Submodule.coe_sub, Submodule.coe_sub,
-    RS.Cech.restrictL_apply_coe, RS.Cech.restrictL_apply_coe,
-    RS.Cech.restrictL_apply_coe, RS.Cech.restrictL_apply_coe,
-    RS.Cech.inclC0_apply, RS.Cech.inclC0_apply]
   rfl
 
 omit [T2Space X] [CompactSpace X] [ConnectedSpace X] [T1Space X] [DecidableEq X]
@@ -228,18 +206,7 @@ omit [T2Space X] [CompactSpace X] [ConnectedSpace X] [T1Space X] [DecidableEq X]
 theorem mlClass_inclC0 {𝒰 : RS.Cech.FinCover (⊤ : Opens X)} {D₁ D₂ D : RS.Divisor X}
     (h : D₁ ≤ D₂) {g : RS.Cech.C0 D₁ 𝒰} (hg : (RS.Cech.d0 D₁ 𝒰 g).MemLD D) :
     RS.Cech.mlClass 𝒰 (RS.Cech.inclC0 D₁ 𝒰 h g) (memLD_inclC0 h hg) = RS.Cech.mlClass 𝒰 g hg := by
-  have hval : RS.Cech.C1.retype (RS.Cech.d0 D₂ 𝒰 (RS.Cech.inclC0 D₁ 𝒰 h g)) (memLD_inclC0 h hg) =
-      RS.Cech.C1.retype (RS.Cech.d0 D₁ 𝒰 g) hg := by
-    funext p
-    apply Subtype.ext
-    simp only [RS.Cech.C1.retype_apply_coe]
-    rw [d0_inclC0_coe]
-  change RS.Cech.toH1 D 𝒰 (RS.Cech.H1Cover.mk D 𝒰
-      ⟨RS.Cech.C1.retype (RS.Cech.d0 D₂ 𝒰 (RS.Cech.inclC0 D₁ 𝒰 h g)) (memLD_inclC0 h hg),
-        RS.Cech.C1.retype_mem_Z1 (memLD_inclC0 h hg)⟩) =
-    RS.Cech.toH1 D 𝒰 (RS.Cech.H1Cover.mk D 𝒰
-      ⟨RS.Cech.C1.retype (RS.Cech.d0 D₁ 𝒰 g) hg, RS.Cech.C1.retype_mem_Z1 hg⟩)
-  exact congrArg (RS.Cech.toH1 D 𝒰) (congrArg (RS.Cech.H1Cover.mk D 𝒰) (Subtype.ext hval))
+  rfl
 
 /-! ### `gOf` algebra -/
 
@@ -574,20 +541,12 @@ theorem mlClassAtOf_agree (p : X) (D : RS.Divisor X) (ψ : RS.MeroGermOn X (char
   set D'' : RS.Divisor X := D'₁ ⊔ D'₂ with hD''def
   have h₁ : D'₁ ≤ D'' := le_sup_left
   have h₂ : D'₂ ≤ D'' := le_sup_right
-  have hψWmem : RS.MeroGermOn.restrict hWsub ψ ∈ RS.LinSysOn D'' (W : Set X) := by
-    refine (RS.mem_linSysOn_iff_of_isOpen W.2).2 ?_
-    intro x hx
-    rw [RS.MeroGermOn.ord_restrict hWsub W.2 (chartAt ℂ p).open_source hx]
-    have hb1 : ((-(D'₁ x) : ℤ) : WithTop ℤ) ≤ ψ.ord x := by
-      have hmem := (RS.mem_linSysOn_iff_of_isOpen V₁.2).1 ψV₁.2 x (hWV₁ hx)
-      rwa [hψV₁, RS.MeroGermOn.ord_restrict hV₁sub V₁.2 (chartAt ℂ p).open_source (hWV₁ hx)] at hmem
-    have hDsup : D'' x = D'₁ x ⊔ D'₂ x := Function.locallyFinsuppWithin.max_apply
-    have hcast : ((-(D'' x) : ℤ) : WithTop ℤ) ≤ ((-(D'₁ x) : ℤ) : WithTop ℤ) := by
-      rw [hDsup]
-      exact_mod_cast neg_le_neg (le_max_left (D'₁ x) (D'₂ x))
-    exact hcast.trans hb1
-  set ψW : RS.LinSysOn D'' (W : Set X) := ⟨RS.MeroGermOn.restrict hWsub ψ, hψWmem⟩ with hψWdef
-  have hψW : (ψW : RS.MeroGermOn X (W : Set X)) = RS.MeroGermOn.restrict hWsub ψ := rfl
+  let ψW : RS.LinSysOn D'' (W : Set X) :=
+    Submodule.inclusion (RS.Cech.linSysOn_mono h₁) (RS.Cech.LinSysOn.restrictL D'₁ hWV₁ ψV₁)
+  have hψW : (ψW : RS.MeroGermOn X (W : Set X)) = RS.MeroGermOn.restrict hWsub ψ := by
+    change RS.MeroGermOn.restrict hWV₁ (ψV₁ : RS.MeroGermOn X (V₁ : Set X)) = _
+    rw [hψV₁]
+    exact RS.MeroGermOn.restrict_restrict _ _ ψ
   have hL := mlClassAtOf_raise_res p D D'₁ D'' ψ V₁ W hpV₁ hpW hWV₁ hV₁sub hV₁clean hV₁Dzero
     hWsub hWclean hWDzero h₁ ψV₁ hψV₁ ψW hψW
   have hR := mlClassAtOf_raise_res p D D'₂ D'' ψ V₂ W hpV₂ hpW hWV₂ hV₂sub hV₂clean hV₂Dzero
@@ -661,47 +620,16 @@ theorem mlClassAt_add (D : RS.Divisor X) (p : X) (ψ ψ' : RS.MeroGermOn X (char
   have hVDzero : ∀ x ∈ (V : Set X), x ≠ p → D x = 0 :=
       fun x hx hxp => cleanNbhd_D_eq_zero D p ψ x hx.1 hxp
   set D' : RS.Divisor X := DPrimeOf D p ψ ⊔ DPrimeOf D p ψ' with hD'def
-  have hDψ : D' p ≥ nOf D p ψ := by
-    rw [hD'def]
-    calc nOf D p ψ = DPrimeOf D p ψ p := (DPrimeOf_apply_self D p ψ).symm
-      _ ≤ DPrimeOf D p ψ p ⊔ DPrimeOf D p ψ' p := le_sup_left
-      _ = (DPrimeOf D p ψ ⊔ DPrimeOf D p ψ') p := (Function.locallyFinsuppWithin.max_apply).symm
-  have hDψ' : D' p ≥ nOf D p ψ' := by
-    rw [hD'def]
-    calc nOf D p ψ' = DPrimeOf D p ψ' p := (DPrimeOf_apply_self D p ψ').symm
-      _ ≤ DPrimeOf D p ψ p ⊔ DPrimeOf D p ψ' p := le_sup_right
-      _ = (DPrimeOf D p ψ ⊔ DPrimeOf D p ψ') p := (Function.locallyFinsuppWithin.max_apply).symm
-  have hD'x : ∀ x ≠ p, D' x = D x := by
-    intro x hx
-    rw [hD'def]
-    change DPrimeOf D p ψ x ⊔ DPrimeOf D p ψ' x = D x
-    rw [DPrimeOf_apply_of_ne D p ψ hx, DPrimeOf_apply_of_ne D p ψ' hx, sup_idem]
-  have hboundψ : ((-(D' p) : ℤ) : WithTop ℤ) ≤ ψ.ord p := by
-    calc ((-(D' p) : ℤ) : WithTop ℤ) ≤ ((-(nOf D p ψ) : ℤ) : WithTop ℤ) :=
-        by exact_mod_cast neg_le_neg hDψ
-      _ ≤ ψ.ord p := neg_nOf_le_ord D p ψ
-  have hboundψ' : ((-(D' p) : ℤ) : WithTop ℤ) ≤ ψ'.ord p := by
-    calc ((-(D' p) : ℤ) : WithTop ℤ) ≤ ((-(nOf D p ψ') : ℤ) : WithTop ℤ) :=
-        by exact_mod_cast neg_le_neg hDψ'
-      _ ≤ ψ'.ord p := neg_nOf_le_ord D p ψ'
-  have hmemψ : RS.MeroGermOn.restrict hVsub ψ ∈ RS.LinSysOn D' (V : Set X) := by
-    refine (RS.mem_linSysOn_iff_of_isOpen V.2).2 ?_
-    intro x hx
-    rw [RS.MeroGermOn.ord_restrict hVsub V.2 (chartAt ℂ p).open_source hx]
-    rcases eq_or_ne x p with rfl | hxp
-    · exact hboundψ
-    · rw [hD'x x hxp, hVDzero x hx hxp]; simpa using hVclean x hx hxp
-  have hmemψ' : RS.MeroGermOn.restrict hVsub ψ' ∈ RS.LinSysOn D' (V : Set X) := by
-    refine (RS.mem_linSysOn_iff_of_isOpen V.2).2 ?_
-    intro x hx
-    rw [RS.MeroGermOn.ord_restrict hVsub V.2 (chartAt ℂ p).open_source hx]
-    rcases eq_or_ne x p with rfl | hxp
-    · exact hboundψ'
-    · rw [hD'x x hxp, hVDzero x hx hxp]; simpa using hVclean' x hx hxp
-  set ψVd : RS.LinSysOn D' (V : Set X) := ⟨RS.MeroGermOn.restrict hVsub ψ, hmemψ⟩ with hψVddef
-  set ψV'd : RS.LinSysOn D' (V : Set X) := ⟨RS.MeroGermOn.restrict hVsub ψ', hmemψ'⟩ with hψV'ddef
-  have hψVd : (ψVd : RS.MeroGermOn X (V : Set X)) = RS.MeroGermOn.restrict hVsub ψ := rfl
-  have hψV'd : (ψV'd : RS.MeroGermOn X (V : Set X)) = RS.MeroGermOn.restrict hVsub ψ' := rfl
+  let ψVd : RS.LinSysOn D' (V : Set X) :=
+    Submodule.inclusion (RS.Cech.linSysOn_mono le_sup_left)
+      (RS.Cech.LinSysOn.restrictL _ inf_le_left (ψVOf D p ψ))
+  let ψV'd : RS.LinSysOn D' (V : Set X) :=
+    Submodule.inclusion (RS.Cech.linSysOn_mono le_sup_right)
+      (RS.Cech.LinSysOn.restrictL _ inf_le_right (ψVOf D p ψ'))
+  have hψVd : (ψVd : RS.MeroGermOn X (V : Set X)) = RS.MeroGermOn.restrict hVsub ψ :=
+    RS.MeroGermOn.restrict_restrict _ _ ψ
+  have hψV'd : (ψV'd : RS.MeroGermOn X (V : Set X)) = RS.MeroGermOn.restrict hVsub ψ' :=
+    RS.MeroGermOn.restrict_restrict _ _ ψ'
   have hψVsumd : ((ψVd + ψV'd : RS.LinSysOn D' (V : Set X)) : RS.MeroGermOn X (V : Set X)) =
       RS.MeroGermOn.restrict hVsub (ψ + ψ') := by
     rw [Submodule.coe_add, hψVd, hψV'd, map_add]
@@ -721,22 +649,10 @@ omit [ConnectedSpace X] in
 theorem mlClassAt_smul (D : RS.Divisor X) (p : X) (c : ℂ)
     (ψ : RS.MeroGermOn X (chartAt ℂ p).source) :
     mlClassAt D p (c • ψ) = c • mlClassAt D p ψ := by
-  have hψV : (ψVOf D p ψ : RS.MeroGermOn X (cleanNbhd D p ψ : Set X)) =
-      RS.MeroGermOn.restrict (cleanNbhd_sub_source D p ψ) ψ := rfl
-  have hmemc : RS.MeroGermOn.restrict (cleanNbhd_sub_source D p ψ) (c • ψ) ∈
-      RS.LinSysOn (DPrimeOf D p ψ) (cleanNbhd D p ψ : Set X) := by
-    rw [map_smul]
-    exact Submodule.smul_mem _ c (restrict_ψ_mem_linSysOn D p ψ)
-  set ψVc : RS.LinSysOn (DPrimeOf D p ψ) (cleanNbhd D p ψ : Set X) :=
-    ⟨RS.MeroGermOn.restrict (cleanNbhd_sub_source D p ψ) (c • ψ), hmemc⟩ with hψVcdef
+  let ψVc := c • ψVOf D p ψ
   have hψVc : (ψVc : RS.MeroGermOn X (cleanNbhd D p ψ : Set X)) =
-      RS.MeroGermOn.restrict (cleanNbhd_sub_source D p ψ) (c • ψ) := rfl
-  have hψVcsmul : ((c • ψVOf D p ψ : RS.LinSysOn (DPrimeOf D p ψ) (cleanNbhd D p ψ : Set X)) :
-      RS.MeroGermOn X (cleanNbhd D p ψ : Set X)) =
-      RS.MeroGermOn.restrict (cleanNbhd_sub_source D p ψ) (c • ψ) := by
-    rw [Submodule.coe_smul, hψV, map_smul]
-  have hVclean : ∀ x ∈ (cleanNbhd D p (c • ψ) : Set X), x ≠ p → (0 : WithTop ℤ) ≤ (c • ψ).ord x :=
-    cleanNbhd_ord_nonneg D p (c • ψ)
+      RS.MeroGermOn.restrict (cleanNbhd_sub_source D p ψ) (c • ψ) :=
+    (map_smul (RS.MeroGermOn.restrict _) c ψ).symm
   have key1 : mlClassAt D p (c • ψ) = mlClassAtOf p D (DPrimeOf D p ψ) (c • ψ)
       (cleanNbhd D p ψ) (mem_cleanNbhd D p ψ) (cleanNbhd_sub_source D p ψ)
       (fun x hx hxp => by
@@ -751,13 +667,8 @@ theorem mlClassAt_smul (D : RS.Divisor X) (p : X) (c : ℂ)
       (cleanNbhd_D_eq_zero D p ψ) ψVc hψVc
   rw [key1]
   unfold mlClassAt mlClassAtOf
-  have hgeq : gOf p (cleanNbhd D p ψ) (mem_cleanNbhd D p ψ) (DPrimeOf D p ψ) ψVc =
-      c • gOf p (cleanNbhd D p ψ) (mem_cleanNbhd D p ψ) (DPrimeOf D p ψ) (ψVOf D p ψ) := by
-    rw [← gOf_smul]
-    congr 1
-    apply Subtype.ext
-    rw [hψVc, Submodule.coe_smul, hψV, map_smul]
-  exact (mlClass_congr hgeq).trans (RS.Cech.mlClass_smul _ _ _ _)
+  exact (mlClass_congr (gOf_smul c p (cleanNbhd D p ψ) (mem_cleanNbhd D p ψ)
+    (DPrimeOf D p ψ) (ψVOf D p ψ))).trans (RS.Cech.mlClass_smul _ _ _ _)
 
 /-! ### The ambient linear map, and its descent to `TailAt p D` / `T D` -/
 
@@ -1158,26 +1069,15 @@ end AlphaPieces
 
 open scoped Classical in
 theorem tailToH1_alpha (D : RS.Divisor X) (f : RS.Mero X) : tailToH1 D (alphaL D f) = 0 := by
-  rw [alphaL_apply]
   rcases eq_or_ne f 0 with rfl | hf
-  · have : alpha D (0 : RS.Mero X) = 0 := by
-      have h0 := (alphaL D).map_zero
-      rwa [alphaL_apply] at h0
-    rw [this, map_zero]
+  · exact ((tailToH1 D).comp (alphaL D)).map_zero
+  rw [alphaL_apply]
   set S := alphaFinset D f with hS_def
   set D' := alphaAuxD D f with hD'_def
   have hfD' : f ∈ RS.LinSys D' := mem_linSys_alphaAuxD D hf
   obtain ⟨𝒱, -, h𝒱Adapted, hOclause⟩ := RS.Cech.exists_adapted_refinement
     (RS.Cech.FinCover.single (⊤ : Opens X)) S (fun p _ => trivial) (alphaPatch D f S)
     (fun p _ => mem_alphaPatch D f S p)
-  -- off-diagonal overlaps of distinct members never meet `S` (pure adaptedness)
-  have hoffdiag := alpha_hoffdiag D f h𝒱Adapted
-  -- a marked point's own dedicated member excludes every other point of `S`
-  have hexcl := alpha_hexcl D f hOclause
-  -- the order of the multi-point cochain's value at any member, at any point outside `S`
-  have hmember_ord := alpha_hmember_ord D f (𝒱 := 𝒱) hfD'
-  -- `MemLD D` for the multi-point cochain, at ANY `T` (diagonal trivial; off-diagonal via
-  -- `hoffdiag` + `hmember_ord`)
   have hg_MemLD := alpha_hg_MemLD D f hfD' h𝒱Adapted
   -- (indeed literally-zero-or-`D`-bounded) difference everywhere
   have hφ : ∀ k : Fin 𝒱.n, ∀ x ∈ (𝒱.U k : Set X),
@@ -1204,9 +1104,6 @@ theorem tailToH1_alpha (D : RS.Divisor X) (f : RS.Mero X) : tailToH1 D (alphaL D
   have hzero : RS.Cech.mlClass 𝒱 (mlSumCochain (𝒱 := 𝒱) D' f hfD' S) (hg_MemLD S) = 0 :=
     RS.Cech.mlClass_eq_zero_of_exists (mlSumCochain (𝒱 := 𝒱) D' f hfD' S) (hg_MemLD S)
       (⟨f, hfD'⟩ : RS.LinSys D') hφ
-  -- CLAIM1: a single marked point's `mlClassAt` equals the big cover's `mlClass` restricted to
-  -- the single-point cochain `mlSumCochain D' f hfD' {p}`
-  have CLAIM1 := alpha_claim1 D f hfD' h𝒱Adapted hOclause
   have main := alpha_main D f hfD' h𝒱Adapted hOclause
   have hsum0 : ∑ q ∈ S, mlClassAt D q (RS.MeroGermOn.restrict (Set.subset_univ _) f) = 0 :=
     (main S (Finset.Subset.refl S)).trans hzero
@@ -1217,8 +1114,8 @@ theorem tailToH1_alpha (D : RS.Divisor X) (f : RS.Mero X) : tailToH1 D (alphaL D
     exact (DFinsupp.mem_support_iff.mp hq)
       ((alpha_apply_eq_zero_iff D f q).2 (not_mem_alphaFinset D f hqS))
   have hlsum : tailToH1 D (alpha D f) = ∑ q ∈ S, tailAtToH1 D q (alpha D f q) := by
-    rw [tailToH1, DFinsupp.lsum_apply_apply, DFinsupp.sumAddHom_apply]
-    unfold DFinsupp.sum
+    refine (DFinsupp.sumAddHom_apply (fun q => (tailAtToH1 D q).toAddMonoidHom)
+      (alpha D f)).trans ?_
     apply Finset.sum_subset hsupp
     intro q _ hq
     rw [DFinsupp.mem_support_iff, not_not] at hq
@@ -1617,10 +1514,8 @@ theorem H1Tail.toH1_injective (D : RS.Divisor X) : Function.Injective (H1Tail.to
     inj_main ψ S D D' hD'mem h𝒱Adapted hOclause S (Finset.Subset.refl S)
   have hclass0 : RS.Cech.mlClass 𝒱 (injG ψ S D D' hD'mem hOclause S)
       (inj_hg_MemLD ψ S D D' hD'mem h𝒱Adapted hOclause S) = 0 := by
-    have hlsum : tailToH1 D z = ∑ q ∈ S, tailAtToH1 D q (z q) := by
-      rw [tailToH1, DFinsupp.lsum_apply_apply, DFinsupp.sumAddHom_apply]
-      unfold DFinsupp.sum
-      rfl
+    have hlsum : tailToH1 D z = ∑ q ∈ S, tailAtToH1 D q (z q) :=
+      DFinsupp.sumAddHom_apply _ _
     rw [hlsum] at hξ
     rw [show (∑ q ∈ S, tailAtToH1 D q (z q)) = ∑ q ∈ S, mlClassAt D q (ψ q) from
       Finset.sum_congr rfl (fun q _ => by rw [← hψ q, tailAtToH1_mk])] at hξ
