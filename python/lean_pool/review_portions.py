@@ -138,6 +138,12 @@ def integration_instructions() -> str:
         "definitions/arguments resolve each. Unresolved obligations prevent "
         "approval. You may retain block/discuss and findings without resolving "
         "them. Never discard a concrete finding just to obtain approval.\n"
+        "The `accepted_resolutions` ledger preserves earlier answers. Your "
+        "`resolutions` may contain only new or updated answers. To retract an "
+        "earlier answer, return `reopened_obligations`: an array of its IDs. "
+        "Reopened obligations need fresh evidence in a later round. Record "
+        "new doubts as findings or open questions, rather than silently "
+        "forgetting an earlier answer.\n"
         "When exact source is needed, also return `source_requests`: an array "
         "of declaration names (qualified names preferred) or exact repository-"
         "relative file paths. The orchestrator retrieves them from the complete "
@@ -200,6 +206,48 @@ def validate_portion_payload(payload: dict) -> None:
         raise ValueError("Portion findings must be a list")
 
 
+def accumulate_resolutions(
+    payload: dict, obligations: dict[str, str], accepted: dict[str, dict]
+) -> dict:
+    """Keep valid earlier evidence until the reviewer explicitly reopens it."""
+    resolutions = payload.get("resolutions", [])
+    reopened = payload.get("reopened_obligations", [])
+    if not isinstance(resolutions, list):
+        raise ValueError("Integration resolutions must be a list")
+    if not isinstance(reopened, list) or any(
+        not isinstance(item, str) for item in reopened
+    ):
+        raise ValueError("Reopened obligations must be a list of IDs")
+    for identifier in reopened:
+        accepted.pop(identifier, None)
+    unknown = []
+    for item in resolutions:
+        if not (
+            isinstance(item, dict)
+            and isinstance(item.get("id"), str)
+            and isinstance(item.get("evidence"), str)
+            and item["evidence"].strip()
+        ):
+            continue
+        if item["id"] not in obligations:
+            unknown.append(item)
+        elif item["id"] not in reopened:
+            accepted[item["id"]] = dict(item)
+    result = dict(payload, resolutions=[*accepted.values(), *unknown])
+    for identifier in set(reopened) - obligations.keys():
+        result["findings"] = [
+            *result.get("findings", []),
+            {
+                "file": "",
+                "line": 0,
+                "rule": "unknown-review-obligation",
+                "comment": f"Integration reopened unknown obligation {identifier!r}.",
+                "evidence": "This ID does not identify any recorded review obligation.",
+            },
+        ]
+    return result
+
+
 def enforce_resolutions(payload: dict, obligations: dict[str, str]) -> dict:
     """Prevent an integration pass from silently dropping an unresolved issue."""
     resolutions = payload.get("resolutions", [])
@@ -213,8 +261,13 @@ def enforce_resolutions(payload: dict, obligations: dict[str, str]) -> dict:
         and item["evidence"].strip()
         and isinstance(item.get("id"), str)
     }
-    if resolved - obligations.keys():
-        raise ValueError("Integration cites an unknown review obligation")
+    unknown = {
+        f"integration:unknown-resolution:{index}": (
+            f"Integration cited unknown obligation {identifier!r}; "
+            "its resolution was not accepted."
+        )
+        for index, identifier in enumerate(sorted(resolved - obligations.keys()), 1)
+    }
     missing = obligations.keys() - resolved
     final_concerns = {
         identifier: concern
@@ -223,8 +276,8 @@ def enforce_resolutions(payload: dict, obligations: dict[str, str]) -> dict:
         ).items()
         if not identifier.endswith(":verdict")
     }
-    obligations = obligations | final_concerns
-    missing |= final_concerns.keys()
+    obligations = obligations | final_concerns | unknown
+    missing |= final_concerns.keys() | unknown.keys()
     if missing:
         payload = dict(payload)
         findings = list(payload.get("findings") or [])

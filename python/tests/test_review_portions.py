@@ -165,8 +165,9 @@ def test_integration_cannot_drop_findings_or_questions():
         review_portions.enforce_resolutions(resolved, obligations)["verdict"] == "pass"
     )
     resolved["resolutions"].append({"id": "invented", "evidence": "irrelevant"})
-    with pytest.raises(ValueError, match="unknown"):
-        review_portions.enforce_resolutions(resolved, obligations)
+    answer = review_portions.enforce_resolutions(resolved, obligations)
+    assert answer["verdict"] == "discuss"
+    assert "unknown obligation 'invented'" in str(answer["findings"])
 
 
 def test_oversized_integration_fails_without_discarding_evidence(monkeypatch):
@@ -610,3 +611,183 @@ def test_final_findings_are_reported_once():
     )
     assert answer["verdict"] == "discuss"
     assert answer["findings"] == [finding]
+
+
+def test_unknown_resolution_cannot_resolve_its_own_diagnostic():
+    """An invented diagnostic ID cannot bypass the unknown-ID safeguard."""
+    payload = {
+        "verdict": "approve",
+        "resolutions": [
+            {"id": "integration:unknown-resolution:1", "evidence": "invented"}
+        ],
+    }
+    answer = review_portions.enforce_resolutions(payload, {})
+    assert answer["verdict"] == "needs_discussion"
+    assert "unknown obligation" in str(answer["findings"])
+
+
+def test_completed_rubrics_survive_a_later_failure(monkeypatch, tmp_path):
+    """The evidence artifact retains complete results before the final rubric."""
+    destination = tmp_path / "review-evidence.json"
+    monkeypatch.setenv("REVIEW_EVIDENCE_PATH", str(destination))
+    calls = []
+
+    def request_review(**kwargs):
+        calls.append(kwargs)
+        if len(calls) == 2:
+            raise RuntimeError("later transport failure")
+        return result({"verdict": "pass", "bottom_line": "completed faithfulness"})
+
+    monkeypatch.setattr(review, "request_review", request_review)
+    with pytest.raises(RuntimeError, match="later transport"):
+        review.run_project_rubrics(review.DEFAULT_MODEL, "source", "xhigh", None, None)
+    saved = json.loads(destination.read_text())
+    assert len(saved) == 1
+    assert saved[0]["payload"]["bottom_line"] == "completed faithfulness"
+
+
+@pytest.mark.parametrize("reopen", [False, True])
+def test_integration_keeps_answers_across_followups_unless_reopened(reopen):
+    """A follow-up retains earlier answers and honors explicit retractions."""
+    calls = []
+
+    def prepare(evidence, rules):
+        return [{"role": "user", "content": evidence}]
+
+    def send(messages):
+        bundle = json.loads(messages[0]["content"])
+        calls.append(bundle)
+        if len(calls) == 1:
+            return result(
+                {
+                    "verdict": "pass",
+                    "resolutions": [
+                        {
+                            "id": "1:question:1",
+                            "evidence": "The supplied definitions settle this.",
+                        }
+                    ],
+                    "source_requests": ["Known"],
+                }
+            )
+        assert bundle["accepted_resolutions"][0]["id"] == "1:question:1"
+        return result(
+            {
+                "verdict": "pass",
+                "resolutions": [
+                    {
+                        "id": "integration:1:source:1",
+                        "evidence": "The exact Known definition is now supplied.",
+                    }
+                ],
+                "reopened_obligations": ["1:question:1"] if reopen else [],
+                "source_requests": [],
+            }
+        )
+
+    answer = review._integrate_portions(
+        "diff --git a/P.lean b/P.lean\n+def Known := 0\n",
+        "{}",
+        {"1:question:1": "Is the foundation standard?"},
+        10_000,
+        prepare,
+        send,
+    )
+    assert answer.payload["verdict"] == ("discuss" if reopen else "pass")
+    if reopen:
+        assert "Is the foundation standard?" in str(answer.payload["findings"])
+    else:
+        assert len(answer.payload["resolutions"]) == 2
+
+
+def test_unknown_resolution_does_not_enter_the_accepted_ledger():
+    """An unrecognized ID cannot gain credibility by surviving a follow-up."""
+    accepted = {}
+    payload = {
+        "verdict": "pass",
+        "resolutions": [{"id": "invented", "evidence": "claim"}],
+    }
+    updated = review_portions.accumulate_resolutions(payload, {}, accepted)
+    assert accepted == {}
+    assert review_portions.enforce_resolutions(updated, {})["verdict"] == "discuss"
+
+
+def test_unknown_reopened_obligation_cannot_approve():
+    """An invalid retraction remains visible as an integration concern."""
+    updated = review_portions.accumulate_resolutions(
+        {"verdict": "pass", "reopened_obligations": ["invented"]}, {}, {}
+    )
+    assert review_portions.enforce_resolutions(updated, {})["verdict"] == "discuss"
+
+
+@pytest.mark.parametrize("azure", [False, True])
+def test_response_format_retry_preserves_accounting(monkeypatch, azure):
+    """Malformed JSON retries only the same request and discloses unmetered work."""
+    calls = []
+
+    def send(model, messages, effort):
+        calls.append(messages)
+        if len(calls) < 3:
+            if azure:
+                raise RuntimeError(
+                    "Azure Codex review failed: Expecting ',' delimiter: "
+                    "line 1 column 2 (char 1)"
+                )
+            raise json.JSONDecodeError("Expecting ',' delimiter", "{broken}", 1)
+        return result({"verdict": "pass"})
+
+    monkeypatch.setattr(review, "_send_review", send)
+    session = review._ReviewSession(review.DEFAULT_MODEL, "xhigh")
+    messages = [{"role": "user", "content": "the original input"}]
+    answer = session.accounted(session.send(messages))
+    assert calls == [messages, messages, messages]
+    assert answer.calls == 3
+    assert len(answer.requests) == 1
+    assert answer.usage is None
+
+
+def test_response_format_retry_is_bounded(monkeypatch):
+    """Persistent malformed output cannot retry indefinitely or approve."""
+
+    def send(*args):
+        raise json.JSONDecodeError("Expecting value", "", 0)
+
+    monkeypatch.setattr(review, "_send_review", send)
+    session = review._ReviewSession(review.DEFAULT_MODEL, "xhigh")
+    with pytest.raises(json.JSONDecodeError):
+        session.send([])
+    assert session.attempts == 3
+    assert session.completed == []
+
+
+def test_format_failure_retries_one_portion_without_repeating_others(monkeypatch):
+    """A formatting error cannot restart all the source work for a rubric."""
+    monkeypatch.setattr(review, "MAX_INPUT_TOKENS", 10_000)
+    calls = {}
+
+    def send(model, messages, effort):
+        user = messages[1]["content"]
+        match = re.search(r"source portion (\d+)/", user)
+        if not match:
+            return result({"verdict": "pass"})
+        number = int(match.group(1))
+        calls[number] = calls.get(number, 0) + 1
+        if number == 1 and calls[number] == 1:
+            raise json.JSONDecodeError("Expecting ',' delimiter", "{broken}", 1)
+        return result(
+            {
+                "verdict": "pass",
+                "evidence_summary": "Local evidence checked",
+                "open_questions": [],
+            }
+        )
+
+    monkeypatch.setattr(review, "_send_review", send)
+    answer = review.request_review(
+        review.DEFAULT_MODEL, "rules", source_diff(), "review"
+    )
+    assert answer.payload["verdict"] == "pass"
+    assert calls[1] == 2
+    assert all(count == 1 for number, count in calls.items() if number != 1)
+    assert len(calls) == answer.portions
+    assert answer.calls == answer.portions + 2
