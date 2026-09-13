@@ -219,26 +219,17 @@ theorem finiteAdeleLocalResidueMap_surjective (D : DivisorA k K)
       π ^ (D (Sum.inl v) + 1) * (π ^ (-(D (Sum.inl v) + 1)) * (z : K))
           = (π ^ (D (Sum.inl v) + 1) * π ^ (-(D (Sum.inl v) + 1))) * (z : K) := by ring
       _ = (z : K) := by rw [h1, one_mul]
-  simp only [finiteAdeleLocalResidueMap, finiteAdeleLocalResidueToSubring]
-  exact congr_arg (IsDedekindDomain.HeightOneSpectrum.residueHom (K := K) v)
-    (Subtype.ext_iff.mpr hmul) ▸ hz
+  exact (congrArg (IsDedekindDomain.HeightOneSpectrum.residueHom (K := K) v)
+    (Subtype.ext hmul)).trans hz
 
 theorem finrankAdeleFiltDiff_single_finite (D : DivisorA k K)
     (v : IsDedekindDomain.HeightOneSpectrum (ringOfIntegers k K)) :
     finrankAdeleFiltDiff k K D (D + Finsupp.single (Sum.inl v) 1) =
       placeDegree k K (Sum.inl v) := by
-  let f := finiteAdeleLocalResidueMap k K D v
-  let e : (ringOfIntegers k K ⧸ v.asIdeal) ≃ₗ[k] v.asIdeal.ResidueField :=
-    finiteResidueFieldEquiv k K v
-  let : FiniteDimensional k v.asIdeal.ResidueField := e.finiteDimensional
-  have hker := finiteAdeleLocalResidueMap_ker k K D v
-  have hsurj := finiteAdeleLocalResidueMap_surjective k K D v
-  rw [finrankAdeleFiltDiff, ← hker, f.quotKerEquivRange.finrank_eq]
-  rw [LinearMap.range_eq_top.mpr hsurj, finrank_top]
-  calc
-    Module.finrank k v.asIdeal.ResidueField = Module.finrank k (ringOfIntegers k K ⧸ v.asIdeal) :=
-      e.finrank_eq.symm
-    _ = placeDegree k K (Sum.inl v) := rfl
+  rw [finrankAdeleFiltDiff, ← finiteAdeleLocalResidueMap_ker k K D v]
+  exact ((finiteAdeleLocalResidueMap k K D v).quotKerEquivOfSurjective
+    (finiteAdeleLocalResidueMap_surjective k K D v)).finrank_eq.trans
+    (finiteResidueFieldEquiv k K v).finrank_eq.symm
 
 /-- Lift an adele to the valuation subring at an infinite place, scaled by a uniformizer power. -/
 noncomputable def infiniteAdeleLocalResidueToSubring (D : DivisorA k K)
@@ -417,27 +408,17 @@ theorem infiniteAdeleLocalResidueMap_surjective (D : DivisorA k K)
       π ^ (D (Sum.inr v) + 1) * (π ^ (-(D (Sum.inr v) + 1)) * (z : K))
           = (π ^ (D (Sum.inr v) + 1) * π ^ (-(D (Sum.inr v) + 1))) * (z : K) := by ring
       _ = (z : K) := by rw [h1, one_mul]
-  simp only [infiniteAdeleLocalResidueMap, infiniteAdeleLocalResidueToSubring]
-  exact congr_arg (IsDedekindDomain.HeightOneSpectrum.residueHom (K := K) v)
-    (Subtype.ext_iff.mpr hmul) ▸ hz
+  exact (congrArg (IsDedekindDomain.HeightOneSpectrum.residueHom (K := K) v)
+    (Subtype.ext hmul)).trans hz
 
 theorem finrankAdeleFiltDiff_single_infinite (D : DivisorA k K)
     (v : IsDedekindDomain.HeightOneSpectrum (infiniteIntegers k K)) :
     finrankAdeleFiltDiff k K D (D + Finsupp.single (Sum.inr v) 1) =
       placeDegree k K (Sum.inr v) := by
-  let f := infiniteAdeleLocalResidueMap k K D v
-  let e : (infiniteIntegers k K ⧸ v.asIdeal) ≃ₗ[k] v.asIdeal.ResidueField :=
-    infiniteResidueFieldEquiv k K v
-  let : FiniteDimensional k v.asIdeal.ResidueField := e.finiteDimensional
-  have hker := infiniteAdeleLocalResidueMap_ker k K D v
-  have hsurj := infiniteAdeleLocalResidueMap_surjective k K D v
-  rw [finrankAdeleFiltDiff, ← hker, f.quotKerEquivRange.finrank_eq]
-  rw [LinearMap.range_eq_top.mpr hsurj, finrank_top]
-  calc
-    Module.finrank k v.asIdeal.ResidueField =
-        Module.finrank k (infiniteIntegers k K ⧸ v.asIdeal) :=
-      e.finrank_eq.symm
-    _ = placeDegree k K (Sum.inr v) := rfl
+  rw [finrankAdeleFiltDiff, ← infiniteAdeleLocalResidueMap_ker k K D v]
+  exact ((infiniteAdeleLocalResidueMap k K D v).quotKerEquivOfSurjective
+    (infiniteAdeleLocalResidueMap_surjective k K D v)).finrank_eq.trans
+    (infiniteResidueFieldEquiv k K v).finrank_eq.symm
 
 theorem finrankAdeleFiltDiff_single_one (D : DivisorA k K) (v : PlaceA k K) :
     finrankAdeleFiltDiff k K D (D + Finsupp.single v 1) = placeDegree k K v := by
@@ -450,43 +431,27 @@ theorem finiteAdeleFiltDiff_quotient_single (D : DivisorA k K) (v : PlaceA k K) 
       Submodule.comap (adeleFilt k K (D + Finsupp.single v 1)).subtype (adeleFilt k K D)) := by
   classical
   rcases v with v | v
-  · let : AddCommGroup (adeleFilt k K (D + Finsupp.single (Sum.inl v) 1)) :=
-      Submodule.addCommGroup _
-    let : Module k (adeleFilt k K (D + Finsupp.single (Sum.inl v) 1)) := Submodule.module _
-    let f := finiteAdeleLocalResidueMap k K D v
-    let e : (ringOfIntegers k K ⧸ v.asIdeal) ≃ₗ[k] v.asIdeal.ResidueField :=
+  · let e : (ringOfIntegers k K ⧸ v.asIdeal) ≃ₗ[k] v.asIdeal.ResidueField :=
       finiteResidueFieldEquiv k K v
     let : FiniteDimensional k v.asIdeal.ResidueField := e.finiteDimensional
-    let p := Submodule.comap (adeleFilt k K (D + Finsupp.single (Sum.inl v) 1)).subtype
-      (adeleFilt k K D)
-    have : Module.Finite k f.range := inferInstance
-    have : Module.Finite k
-        (adeleFilt k K (D + Finsupp.single (Sum.inl v) 1) ⧸ f.ker) :=
-      Module.Finite.equiv f.quotKerEquivRange.symm
-    exact Module.Finite.equiv (Submodule.quotEquivOfEq f.ker p
-      (finiteAdeleLocalResidueMap_ker k K D v))
-  · let : AddCommGroup (adeleFilt k K (D + Finsupp.single (Sum.inr v) 1)) :=
-      Submodule.addCommGroup _
-    let : Module k (adeleFilt k K (D + Finsupp.single (Sum.inr v) 1)) := Submodule.module _
-    let f := infiniteAdeleLocalResidueMap k K D v
-    let e : (infiniteIntegers k K ⧸ v.asIdeal) ≃ₗ[k] v.asIdeal.ResidueField :=
+    rw [← finiteAdeleLocalResidueMap_ker k K D v]
+    exact Module.Finite.equiv
+      ((finiteAdeleLocalResidueMap k K D v).quotKerEquivOfSurjective
+        (finiteAdeleLocalResidueMap_surjective k K D v)).symm
+  · let e : (infiniteIntegers k K ⧸ v.asIdeal) ≃ₗ[k] v.asIdeal.ResidueField :=
       infiniteResidueFieldEquiv k K v
     let : FiniteDimensional k v.asIdeal.ResidueField := e.finiteDimensional
-    let p := Submodule.comap (adeleFilt k K (D + Finsupp.single (Sum.inr v) 1)).subtype
-      (adeleFilt k K D)
-    have : Module.Finite k f.range := inferInstance
-    have : Module.Finite k
-        (adeleFilt k K (D + Finsupp.single (Sum.inr v) 1) ⧸ f.ker) :=
-      Module.Finite.equiv f.quotKerEquivRange.symm
-    exact Module.Finite.equiv (Submodule.quotEquivOfEq f.ker p
-      (infiniteAdeleLocalResidueMap_ker k K D v))
+    rw [← infiniteAdeleLocalResidueMap_ker k K D v]
+    exact Module.Finite.equiv
+      ((infiniteAdeleLocalResidueMap k K D v).quotKerEquivOfSurjective
+        (infiniteAdeleLocalResidueMap_surjective k K D v)).symm
 
 theorem finiteAdeleFiltDiff_quotient_self (D : DivisorA k K) :
     Module.Finite k ((adeleFilt k K D) ⧸
       Submodule.comap (adeleFilt k K D).subtype (adeleFilt k K D)) := by
   rw [show Submodule.comap (adeleFilt k K D).subtype (adeleFilt k K D) = ⊤ from
     Submodule.comap_subtype_self (adeleFilt k K D)]
-  infer_instance
+  exact Module.Finite.of_finite
 
 theorem finiteAdeleFiltDiff_quotient_mono_add {D M N : DivisorA k K}
     (hDM : D ≤ M) (hMN : M ≤ N)
@@ -670,7 +635,7 @@ theorem finrankAdeleFiltDiff_add_effective (D E : DivisorA k K)
         ext a
         simp
       rw [hp]
-      exact Module.finrank_eq_zero_of_subsingleton k _
+      exact Module.finrank_zero_of_subsingleton
   | single_add a b f ha hb ih =>
       have hfa : f a = 0 := Finsupp.notMem_support_iff.mp ha
       have hff : IsEffective k K f := by
@@ -710,7 +675,7 @@ theorem finrankAdeleFiltDiff_add_effective (D E : DivisorA k K)
               ext a
               simp
             rw [hp]
-            exact Module.finrank_eq_zero_of_subsingleton k _
+            exact Module.finrank_zero_of_subsingleton
         | succ n ihN =>
             let P := M + Finsupp.single a (n : ℤ)
             have hMP : M ≤ P := by
@@ -1065,7 +1030,7 @@ theorem sandwichDiagonalSubmodule_eq_of_rank_zero {D D' : DivisorA k K} (hle : D
     rw [hpsum, hinfl] at hsand
     exact hsand.symm.trans hfin_sandwich
   have : Module.Finite k (↥p ⧸ qt) :=
-    Module.Finite.equiv (Submodule.quotientQuotientEquivQuotient qp qt hqp_le)
+    Module.Finite.of_surjective (Submodule.factor hqp_le) (Submodule.factor_surjective hqp_le)
   have hrk : Module.rank k (↥p ⧸ qt) = 0 := by
     rw [← Module.finrank_eq_rank, hfin_qt, Nat.cast_zero]
   have hsub : Subsingleton (↥p ⧸ qt) := rank_zero_iff.mp hrk
