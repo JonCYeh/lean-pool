@@ -213,8 +213,13 @@ def enforce_resolutions(payload: dict, obligations: dict[str, str]) -> dict:
         and item["evidence"].strip()
         and isinstance(item.get("id"), str)
     }
-    if resolved - obligations.keys():
-        raise ValueError("Integration cites an unknown review obligation")
+    unknown = {
+        f"integration:unknown-resolution:{index}": (
+            f"Integration cited unknown obligation {identifier!r}; "
+            "its resolution was not accepted."
+        )
+        for index, identifier in enumerate(sorted(resolved - obligations.keys()), 1)
+    }
     missing = obligations.keys() - resolved
     final_concerns = {
         identifier: concern
@@ -223,8 +228,8 @@ def enforce_resolutions(payload: dict, obligations: dict[str, str]) -> dict:
         ).items()
         if not identifier.endswith(":verdict")
     }
-    obligations = obligations | final_concerns
-    missing |= final_concerns.keys()
+    obligations = obligations | final_concerns | unknown
+    missing |= final_concerns.keys() | unknown.keys()
     if missing:
         payload = dict(payload)
         findings = list(payload.get("findings") or [])

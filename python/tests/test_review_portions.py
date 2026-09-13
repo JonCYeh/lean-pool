@@ -165,8 +165,9 @@ def test_integration_cannot_drop_findings_or_questions():
         review_portions.enforce_resolutions(resolved, obligations)["verdict"] == "pass"
     )
     resolved["resolutions"].append({"id": "invented", "evidence": "irrelevant"})
-    with pytest.raises(ValueError, match="unknown"):
-        review_portions.enforce_resolutions(resolved, obligations)
+    answer = review_portions.enforce_resolutions(resolved, obligations)
+    assert answer["verdict"] == "discuss"
+    assert "unknown obligation 'invented'" in str(answer["findings"])
 
 
 def test_oversized_integration_fails_without_discarding_evidence(monkeypatch):
@@ -610,3 +611,36 @@ def test_final_findings_are_reported_once():
     )
     assert answer["verdict"] == "discuss"
     assert answer["findings"] == [finding]
+
+
+def test_unknown_resolution_cannot_resolve_its_own_diagnostic():
+    """An invented diagnostic ID cannot bypass the unknown-ID safeguard."""
+    payload = {
+        "verdict": "approve",
+        "resolutions": [
+            {"id": "integration:unknown-resolution:1", "evidence": "invented"}
+        ],
+    }
+    answer = review_portions.enforce_resolutions(payload, {})
+    assert answer["verdict"] == "needs_discussion"
+    assert "unknown obligation" in str(answer["findings"])
+
+
+def test_completed_rubrics_survive_a_later_failure(monkeypatch, tmp_path):
+    """The evidence artifact retains complete results before the final rubric."""
+    destination = tmp_path / "review-evidence.json"
+    monkeypatch.setenv("REVIEW_EVIDENCE_PATH", str(destination))
+    calls = []
+
+    def request_review(**kwargs):
+        calls.append(kwargs)
+        if len(calls) == 2:
+            raise RuntimeError("later transport failure")
+        return result({"verdict": "pass", "bottom_line": "completed faithfulness"})
+
+    monkeypatch.setattr(review, "request_review", request_review)
+    with pytest.raises(RuntimeError, match="later transport"):
+        review.run_project_rubrics(review.DEFAULT_MODEL, "source", "xhigh", None, None)
+    saved = json.loads(destination.read_text())
+    assert len(saved) == 1
+    assert saved[0]["payload"]["bottom_line"] == "completed faithfulness"

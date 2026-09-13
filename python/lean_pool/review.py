@@ -1453,6 +1453,7 @@ def run_project_rubrics(
         verdict = normalize_rubric_verdict(spec, result.payload)
         print(f"Rubric {spec.key}: {verdict}.", file=sys.stderr)
         outcomes.append(RubricOutcome(spec=spec, result=result, verdict=verdict))
+        _write_review_evidence([outcome.result for outcome in outcomes])
     return outcomes
 
 
