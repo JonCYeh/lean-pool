@@ -565,13 +565,14 @@ lemma f_vadd_m [NeZero m] (i : Option (ZMod m)) (τ : ℍ) :
     have hpt : AInf m • ((m : ℝ) +ᵥ τ) = ((m^2 : ℕ) : ℝ) +ᵥ (AInf m • τ) := by
       apply UpperHalfPlane.ext
       simp only [coe_AInf_smul, UpperHalfPlane.coe_vadd]; push_cast; ring
-    rw [hpt]; exact_mod_cast j_vadd_int (m^2 : ℕ) (AInf m • τ)
+    rw [hpt]
+    simpa only [Int.cast_natCast] using j_vadd_int (m ^ 2 : ℕ) (AInf m • τ)
   | some b =>
     simp only [f_some]
-    have hpt : Acol m b.val • ((m : ℝ) +ᵥ τ) = ((1:ℕ):ℝ) +ᵥ (Acol m b.val • τ) := by
+    have hpt : Acol m b.val • ((m : ℝ) +ᵥ τ) = (1 : ℝ) +ᵥ (Acol m b.val • τ) := by
       apply UpperHalfPlane.ext
       simp only [coe_Acol_smul, UpperHalfPlane.coe_vadd]; push_cast; field_simp; ring
-    rw [hpt]; exact_mod_cast j_vadd_int (1 : ℕ) (Acol m b.val • τ)
+    rw [hpt, j_vadd_one]
 
 lemma isBoundedAtImInfty_wParam [NeZero m] : IsBoundedAtImInfty (fun τ : ℍ ↦ wParam m τ) := by
   have hm : (0:ℝ) < m := by exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne m)
@@ -810,7 +811,8 @@ theorem orbitPoly_coeff_isCuspMeroR_bot [Fact m.Prime] (n : ℕ) :
   have hrat : IsCuspMeroR (fun τ : ℍ ↦ (orbitPoly m τ).coeff n) N RQ :=
     orbitPoly_coeff_isCuspMeroR_RQ n P hP N (by omega)
   have hNint : m ^ 2 * (m + 1) ≤ m * N := by
-    rw [hNdef]; nlinarith [Nat.zero_le (m * P.natDegree)]
+    calc m ^ 2 * (m + 1) = m * (m ^ 2 + m) := by ring
+      _ ≤ m * N := Nat.mul_le_mul_left m (Nat.le_add_left _ _)
   have hint : GoodQ (m : ℝ) RI (fun τ : ℍ ↦ (orbitPoly m τ).coeff n * q τ ^ N) :=
     goodQ_orbitPoly_coeff_mul_qpow n N hNint
   refine ⟨hrat.periodic, hrat.holo, hrat.bdd, fun p ↦ ?_⟩
