@@ -43,8 +43,8 @@ variable {S T U : Trees} {k m n : ℕ}
       intro x a ⟨h1, h2⟩; use mem_of_append h1
       simp_rw [List.length_append, List.length_singleton] at h2; omega }⟩
   map f := {
-    toFun := fun x ↦ ⟨(f ⟨x.val, x.prop.1⟩).val, by
-      constructor <;> simp only [SetLike.coe_mem, LenHom.h_length_simp, x.prop.2]⟩
+    toFun := fun x ↦ ⟨(f ⟨x.val, x.prop.1⟩).val,
+      ⟨(f ⟨x.val, x.prop.1⟩).prop, (f.h_length _).trans_le x.prop.2⟩⟩
     monotone' := fun _ _ h ↦ f.monotone' h
     h_length := fun x ↦ by exact f.h_length ⟨Subtype.val x, (Subtype.prop x).1⟩
   }
@@ -95,7 +95,7 @@ lemma resEq_val (f : S ⟶ T) (k : ℕ) x :
 
 /-- Auxiliary declaration for the Borel determinacy formalization. -/
 def resIncl {k m} (h : k ≤ m) : resEq k ⟶ res m ⋙ forget Trees where
-  app := fun _ ↦ TypeCat.ofHom fun x ↦ ⟨x.val, ⟨x.prop.1, by linarith [x.prop.2]⟩⟩
+  app := fun _ ↦ TypeCat.ofHom fun x ↦ ⟨x.val, ⟨x.prop.1, x.prop.2.trans_le h⟩⟩
   naturality _ _ _ := rfl
 lemma resIncl_len (h : k ≤ m) x :
   ((resIncl h).app S x).val.length (α := S.1) = k := x.prop.2
