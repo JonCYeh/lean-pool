@@ -90,10 +90,12 @@ Apache License, Version 2.0, and are redistributed here under the same license.
                                      https://github.com/math-inc/FrontierMathOpen-Hypergraphs
   LeanPool/FundamentalInequality     https://github.com/linzialessandro/FundamentalInequality
   LeanPool/GKPCarry                  https://github.com/lyfar/gkp-carry-lean
+  LeanPool/GapCVP                    https://github.com/openai/ten-proofs
   LeanPool/HadwigerNelsonBounds      https://github.com/lyfar/hadwiger-nelson-bounds-lean
   LeanPool/HansonWright              https://github.com/Lean-MoDS/StatsMLlib
   LeanPool/Incompleteness            https://github.com/FormalizedFormalLogic/Incompleteness
   LeanPool/InfinitaryLogic           https://github.com/cameronfreer/infinitary-logic
+  LeanPool/InfiniteConnesRigidity    https://github.com/openai/ten-proofs
   LeanPool/IsTranscendentalPi        https://github.com/samuelborza/IsTranscendentalPi
   LeanPool/IsoGraph                  https://github.com/Timeroot/IsoGraph
   LeanPool/Isoperimetric             https://github.com/hojonathanho/isoperimetric
@@ -117,6 +119,7 @@ Apache License, Version 2.0, and are redistributed here under the same license.
   LeanPool/LowDimSolvClassification  https://github.com/LieLean/LowDimSolvClassification
   LeanPool/MRiscX                    https://github.com/JulsDE/MRiscX
   LeanPool/MatchingLogic             https://github.com/eveil-labs/matching-logic-lean
+  LeanPool/MetricCodes               https://github.com/openai/ten-proofs
   LeanPool/MinModulusUniqueMultisetSum
                                      https://github.com/jarfo/min-modulus
   LeanPool/MinimumDegreeMatching     https://github.com/jtraverso/erdos-81-chordal-clique-partitions
@@ -127,6 +130,7 @@ Apache License, Version 2.0, and are redistributed here under the same license.
   LeanPool/MulticolorTriangleRamsey  https://github.com/openai/ten-proofs
   LeanPool/NashWilliams              https://github.com/yannpequignot/TwoBQO
   LeanPool/Neukirch                  https://github.com/jjdishere/neukirch
+  LeanPool/NonSoficGroup             https://github.com/openai/ten-proofs
   LeanPool/OSforGFF                  https://github.com/mrdouglasny/OSforGFF
   LeanPool/OddPrimeValuationDistribution
                                      https://github.com/lyfar/gkp-carry-lean
@@ -148,6 +152,7 @@ Apache License, Version 2.0, and are redistributed here under the same license.
   LeanPool/PythagoreanPolynomialParametrization
                                      https://github.com/epfl-lara/AutoformalizedProjects
   LeanPool/QuadraticIterates         https://github.com/MichaelStollBayreuth/QuadraticIterates
+  LeanPool/QuantumParallelRepetition https://github.com/openai/ten-proofs
   LeanPool/Rado                      https://github.com/rkirov/jordan_pick
   LeanPool/RamanujanNagell           https://github.com/BarinderBanwait/ramanujan_nagell
   LeanPool/RellichKondrachov         https://github.com/abenenson/rellich-kondrachov
