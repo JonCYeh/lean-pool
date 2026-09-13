@@ -165,7 +165,7 @@ lemma bodyLiftExists_iff_system
     use ⟨(bodyEquivSystem.inv.app T.1 x).val, hmem⟩
     have hmap : (bodyFunctor.map toHom) (bodyEquivSystem.inv.app T.1 x) = y' := by
       apply ((isIso_iff_bijective (bodyEquivSystem.hom.app U.1)).mp inferInstance).1
-      simp_all
+      simpa only [naturality_apply_types, Iso.inv_hom_id_app_apply] using hxe
     exact congrArg Subtype.val hmap
 
 end Covering
