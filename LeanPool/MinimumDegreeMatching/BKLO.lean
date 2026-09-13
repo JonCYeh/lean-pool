@@ -108,7 +108,6 @@ theorem pot_empty_lt_of_hyps {V : Type} [DecidableEq V] {ρ t q : ℝ} {k s : �
     (hiv : ∀ y ∈ W, (degTo H y U : ℝ) ≤ 2 * (k : ℝ) * ρ * (W.card : ℝ))
     (hSsq : ((S.card : ℝ)) ^ 2 ≤ Real.exp (t * (W.card : ℝ))) :
     pot H W q ∅ U < 2 ^ (s + 1) := by
-  have hWnn : (0 : ℝ) ≤ (W.card : ℝ) := by positivity
   have hTW : 0 ≤ t * (W.card : ℝ) := by positivity
   set E : ℝ := Real.exp (4 * (t * (W.card : ℝ)) / 9) with hE
   have hEpos : 0 < E := Real.exp_pos _
@@ -117,20 +116,19 @@ theorem pot_empty_lt_of_hyps {V : Type} [DecidableEq V] {ρ t q : ℝ} {k s : �
     intro x hx y hy
     have h0 : usedCnt H W ∅ x y = 0 := by simp [usedCnt, edgesIn, edeg]
     rw [h0, pow_zero, one_mul]
-    have hle : 1 + q ≤ Real.exp q := by linarith only [Real.add_one_le_exp q]
+    have hle : 1 + q ≤ Real.exp q := by
+      simpa only [add_comm] using Real.add_one_le_exp q
     have h1 : (1 + q) ^ degTo H y U ≤ (Real.exp q) ^ degTo H y U :=
-      pow_le_pow_left₀ (by linarith) hle _
+      pow_le_pow_left₀ (add_nonneg zero_le_one hqpos.le) hle _
     have h2 : (Real.exp q) ^ degTo H y U = Real.exp (q * (degTo H y U : ℝ)) := by
-      rw [← Real.exp_nat_mul]
-      ring_nf
+      rw [← Real.exp_nat_mul, mul_comm]
     have h3 : q * (degTo H y U : ℝ) ≤ 4 * (t * (W.card : ℝ)) / 9 := by
       have hyW : y ∈ W := nbhdIn_subset H x W hy
-      have hd := hiv y hyW
       have hqe : q * (2 * (k : ℝ) * ρ * (W.card : ℝ)) = 4 * (t * (W.card : ℝ)) / 9 := by
         rw [hq, hts]
         field_simp
         ring
-      nlinarith [hqpos]
+      exact (mul_le_mul_of_nonneg_left (hiv y hyW) hqpos.le).trans_eq hqe
     calc
       (1 + q) ^ degTo H y U ≤ Real.exp (q * (degTo H y U : ℝ)) := by rw [← h2]; exact h1
       _ ≤ E := by rw [hE]; exact Real.exp_le_exp.2 h3
@@ -139,14 +137,14 @@ theorem pot_empty_lt_of_hyps {V : Type} [DecidableEq V] {ρ t q : ℝ} {k s : �
         ∑ y ∈ nbhdIn H x W, (2 : ℝ) ^ usedCnt H W ∅ x y * (1 + q) ^ degTo H y U
           ≤ (S.card : ℝ) * E := by
       intro x hx
-      have h1 : ∑ y ∈ nbhdIn H x W,
-          (2 : ℝ) ^ usedCnt H W ∅ x y * (1 + q) ^ degTo H y U ≤
-          ∑ _y ∈ nbhdIn H x W, E := Finset.sum_le_sum (fun y hy => hterm x hx y hy)
-      have h2 : ∑ _y ∈ nbhdIn H x W, E = (nbhdIn H x W).card * E := by
-        rw [Finset.sum_const, nsmul_eq_mul]
-      have h3 : ((nbhdIn H x W).card : ℝ) ≤ (S.card : ℝ) := by
-        exact_mod_cast Finset.card_le_card ((nbhdIn_subset H x W).trans hWS)
-      nlinarith [hEpos]
+      calc
+        ∑ y ∈ nbhdIn H x W,
+            (2 : ℝ) ^ usedCnt H W ∅ x y * (1 + q) ^ degTo H y U
+          ≤ (nbhdIn H x W).card * E := by
+            simpa only [nsmul_eq_mul] using
+              Finset.sum_le_card_nsmul (nbhdIn H x W) _ E (hterm x hx)
+        _ ≤ (S.card : ℝ) * E := mul_le_mul_of_nonneg_right
+          (by exact_mod_cast Finset.card_le_card ((nbhdIn_subset H x W).trans hWS)) hEpos.le
     have h6 : (U.card : ℝ) ≤ (S.card : ℝ) := by exact_mod_cast Finset.card_le_card hUS
     calc
       pot H W q ∅ U ≤ ∑ _x ∈ U, (S.card : ℝ) * E := Finset.sum_le_sum hinner
@@ -164,12 +162,12 @@ theorem pot_empty_lt_of_hyps {V : Type} [DecidableEq V] {ρ t q : ℝ} {k s : �
     have hA : 9 * (k : ℝ) * t * (W.card : ℝ) * Real.log 2 <
         ((s : ℝ) + 1) * Real.log 2 := mul_lt_mul_of_pos_right hfloor (by linarith)
     have hkl : (1.5 : ℝ) ≤ 9 * (k : ℝ) * Real.log 2 := by nlinarith only [hlog, hk1]
-    have hB : 1.5 * (t * (W.card : ℝ)) ≤
-        (9 * (k : ℝ) * Real.log 2) * (t * (W.card : ℝ)) :=
-      mul_le_mul_of_nonneg_right hkl hTW
-    have hC2 : (9 * (k : ℝ) * Real.log 2) * (t * (W.card : ℝ)) =
-        9 * (k : ℝ) * t * (W.card : ℝ) * Real.log 2 := by ring
-    linarith
+    calc
+      1.5 * (t * (W.card : ℝ)) ≤
+          (9 * (k : ℝ) * Real.log 2) * (t * (W.card : ℝ)) :=
+        mul_le_mul_of_nonneg_right hkl hTW
+      _ = 9 * (k : ℝ) * t * (W.card : ℝ) * Real.log 2 := by ring
+      _ < ((s : ℝ) + 1) * Real.log 2 := hA
   have hfin : ((S.card : ℝ)) ^ 2 * E < 2 ^ (s + 1) := by
     have hE' : E ≤ Real.exp (0.5 * (t * (W.card : ℝ))) := by
       rw [hE]
@@ -178,12 +176,15 @@ theorem pot_empty_lt_of_hyps {V : Type} [DecidableEq V] {ρ t q : ℝ} {k s : �
         Real.exp (t * (W.card : ℝ)) * Real.exp (0.5 * (t * (W.card : ℝ))) :=
       mul_le_mul hSsq hE' hEpos.le (Real.exp_pos _).le
     have hB : Real.exp (t * (W.card : ℝ)) * Real.exp (0.5 * (t * (W.card : ℝ))) =
-        Real.exp (1.5 * (t * (W.card : ℝ))) := by rw [← Real.exp_add]; ring_nf
+        Real.exp (1.5 * (t * (W.card : ℝ))) := by
+          rw [← Real.exp_add]
+          congr 1
+          ring
     rw [h2s]
     calc
       ((S.card : ℝ)) ^ 2 * E ≤ Real.exp (1.5 * (t * (W.card : ℝ))) := by rw [← hB]; exact hA
       _ < Real.exp (((s : ℝ) + 1) * Real.log 2) := Real.exp_lt_exp.2 hkey
-  linarith
+  exact hbound.trans_lt hfin
 
 /-! ### The `r = 2` simultaneous factor theorem -/
 
