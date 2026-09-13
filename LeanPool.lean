@@ -1,4 +1,4 @@
-module
+module  -- shake: keep-all --deprecated_module: ignore
 
 public import LeanPool.ABCExceptions
 public import LeanPool.ABCExceptions.ForMathlib
