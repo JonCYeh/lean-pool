@@ -5506,36 +5506,15 @@ private theorem elementaryThreeCoordinateRotation_mem
     (Subgroup.subset_closure ⟨i, j, h, 1, rfl⟩)
 
 /-- Cross-module support for the infinite Connes-rigidity construction. -/
-private theorem elementaryThreeTransvection_smul_same
-    (i j : Fin 3) (h : i ≠ j) (a : R) (v : Fin 3 → R) :
-    (Matrix.SpecialLinearGroup.transvection h a • v) i =
-      v i + a * v j := by
-  change ((Matrix.SpecialLinearGroup.transvection h a).val *ᵥ v) i = _
-  rw [Matrix.SpecialLinearGroup.transvection_coe, Matrix.add_mulVec,
-    Matrix.one_mulVec, Matrix.single_mulVec]
-  simp only [Pi.add_apply, Function.update_self]
-
-/-- Cross-module support for the infinite Connes-rigidity construction. -/
-private theorem elementaryThreeTransvection_smul_other
-    (i j k : Fin 3) (h : i ≠ j) (hk : k ≠ i)
-    (a : R) (v : Fin 3 → R) :
-    (Matrix.SpecialLinearGroup.transvection h a • v) k = v k := by
-  change ((Matrix.SpecialLinearGroup.transvection h a).val *ᵥ v) k = _
-  rw [Matrix.SpecialLinearGroup.transvection_coe, Matrix.add_mulVec,
-    Matrix.one_mulVec, Matrix.single_mulVec]
-  simp only [Pi.add_apply, ne_eq, hk, not_false_eq_true, Function.update_of_ne, Pi.zero_apply,
-    add_zero]
-
-/-- Cross-module support for the infinite Connes-rigidity construction. -/
 private theorem elementaryThreeCoordinateRotation_smul_left
     (i j : Fin 3) (h : i ≠ j) (v : Fin 3 → R) :
     (elementaryThreeCoordinateRotation (R := R) i j h • v) i = v j := by
   simp only [elementaryThreeCoordinateRotation, mul_smul]
-  rw [elementaryThreeTransvection_smul_same]
-  rw [elementaryThreeTransvection_smul_other j i i h.symm h]
-  rw [elementaryThreeTransvection_smul_same j i]
-  rw [elementaryThreeTransvection_smul_same i j]
-  rw [elementaryThreeTransvection_smul_other i j j h h.symm]
+  rw [elementaryThree_transvection_smul_same]
+  rw [elementaryThree_transvection_smul_other j i i h.symm h]
+  rw [elementaryThree_transvection_smul_same j i]
+  rw [elementaryThree_transvection_smul_same i j]
+  rw [elementaryThree_transvection_smul_other i j j h h.symm]
   ring
 
 /-- Cross-module support for the infinite Connes-rigidity construction. -/
@@ -5543,10 +5522,10 @@ private theorem elementaryThreeCoordinateRotation_smul_right
     (i j : Fin 3) (h : i ≠ j) (v : Fin 3 → R) :
     (elementaryThreeCoordinateRotation (R := R) i j h • v) j = -v i := by
   simp only [elementaryThreeCoordinateRotation, mul_smul]
-  rw [elementaryThreeTransvection_smul_other i j j h h.symm]
-  rw [elementaryThreeTransvection_smul_same j i]
-  rw [elementaryThreeTransvection_smul_same i j]
-  rw [elementaryThreeTransvection_smul_other i j j h h.symm]
+  rw [elementaryThree_transvection_smul_other i j j h h.symm]
+  rw [elementaryThree_transvection_smul_same j i]
+  rw [elementaryThree_transvection_smul_same i j]
+  rw [elementaryThree_transvection_smul_other i j j h h.symm]
   ring
 
 /-- Cross-module support for the infinite Connes-rigidity construction. -/
@@ -5555,9 +5534,9 @@ private theorem elementaryThreeCoordinateRotation_smul_other
     (v : Fin 3 → R) :
     (elementaryThreeCoordinateRotation (R := R) i j h • v) k = v k := by
   simp only [elementaryThreeCoordinateRotation, mul_smul]
-  rw [elementaryThreeTransvection_smul_other i j k h hki,
-    elementaryThreeTransvection_smul_other j i k h.symm hkj,
-    elementaryThreeTransvection_smul_other i j k h hki]
+  rw [elementaryThree_transvection_smul_other i j k h hki,
+    elementaryThree_transvection_smul_other j i k h.symm hkj,
+    elementaryThree_transvection_smul_other i j k h hki]
 
 /-- Cross-module support for the infinite Connes-rigidity construction. -/
 private theorem elementaryThreeCoordinateRotation_two_zero_smul_single_zero :

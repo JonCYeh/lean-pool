@@ -5158,24 +5158,6 @@ private theorem universalLattice (input : PaperAnalyticInput) :
     ErshovJaikinUniversalLatticePropertyT :=
   universalLatticePropertyT_of_suslinRelative input.suslinRelative
 
-/-- Cross-module support for the infinite Connes-rigidity construction. -/
-private theorem lambda_propertyT (input : PaperAnalyticInput) :
-    HasKazhdanPropertyT lambdaGroup :=
-  lambda_hasKazhdanPropertyT_unconditional input.universalLattice
-
-/-- Cross-module support for the infinite Connes-rigidity construction. -/
-private theorem gamma_propertyT (input : PaperAnalyticInput) (n : ℕ) :
-    HasKazhdanPropertyT (gammaGroup n) :=
-  gamma_hasKazhdanPropertyT_unconditional n input.universalLattice
-
-/-- Cross-module support for the infinite Connes-rigidity construction. -/
-private theorem lambda_icc : IsICC lambdaGroup :=
-  lambda_isICC
-
-/-- Cross-module support for the infinite Connes-rigidity construction. -/
-private theorem gamma_icc (n : ℕ) : IsICC (gammaGroup n) :=
-  gamma_isICC n
-
 private theorem gamma_not_isomorphic_lambda (n : ℕ) :
     ¬GroupsIsomorphic (gammaGroup n) lambdaGroup :=
   not_groupsIsomorphic_of_orderFour (gamma_has_order_four n)
