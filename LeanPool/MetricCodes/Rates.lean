@@ -4230,30 +4230,11 @@ end Spherical
 
 end MetricCodes
 
-section
-
-open Filter MeasureTheory Metric
-open scoped ENNReal Pointwise
-
-namespace SpherePacking
-
-
-
-end SpherePacking
-
-end
 
 namespace MetricCodes
 
 namespace Spherical
 
-section
-
-
-open Filter Topology
-open scoped Topology
-
-end
 
 section
 
@@ -4910,101 +4891,12 @@ end Spherical
 end MetricCodes
 
 
-namespace MetricCodes
 
-namespace Spherical
-
-section
-
-open MeasureTheory ProbabilityTheory Real
-open scoped ENNReal
-
-end
-
-section
-
-open Filter
-open scoped Topology BigOperators Interval
-
-namespace HigherHierarchyChebyshev.Asymptotic
-
-end HigherHierarchyChebyshev.Asymptotic
-
-end
-
-section
-
-open Filter Set
-open scoped Topology BigOperators
-
-namespace HigherHierarchy.MidpointQuadrature
-
-end HigherHierarchy.MidpointQuadrature
-
-end
-
-section
-
-open Filter
-open MetricCodes.Spherical.HigherHierarchy.MidpointQuadrature
-open scoped BigOperators Topology Interval
-
-namespace HigherHierarchyChebyshev.Asymptotic
-
-end HigherHierarchyChebyshev.Asymptotic
-
-end
-
-end Spherical
-
-end MetricCodes
-
-section
-
-open scoped Interval
-
-namespace MetricCodes.Spherical.HigherHierarchyChebyshev
-
-end MetricCodes.Spherical.HigherHierarchyChebyshev
-
-open Filter
-open scoped Topology BigOperators
-
-namespace MetricCodes.Spherical.HigherHierarchyChebyshev.Asymptotic
-
-end MetricCodes.Spherical.HigherHierarchyChebyshev.Asymptotic
-
-end
 
 namespace MetricCodes
 
 namespace Spherical
 
-namespace HigherHierarchyChebyshev
-
-namespace Asymptotic
-
-section
-
-open Filter
-open scoped Topology
-
-end
-
-section
-
-open Filter
-open scoped BigOperators Topology
-
-end
-
-section
-
-end
-
-end Asymptotic
-
-end HigherHierarchyChebyshev
 
 namespace HigherHierarchy
 
@@ -5591,16 +5483,7 @@ theorem integral_exp_neg_stieltjesPhase_eq_one_sub_two_Gamma
 
 end
 
-section
 
-open MeasureTheory ProbabilityTheory
-open scoped ENNReal BigOperators
-
-end
-
-section
-
-end
 
 end HigherHierarchy
 

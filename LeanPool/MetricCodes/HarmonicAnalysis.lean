@@ -2982,17 +2982,6 @@ end SpherePacking
 
 namespace MetricCodes
 
-section
-
-open scoped BigOperators InnerProductSpace Matrix
-
-namespace Johnson
-
-
-
-end Johnson
-
-end
 
 namespace Spherical
 

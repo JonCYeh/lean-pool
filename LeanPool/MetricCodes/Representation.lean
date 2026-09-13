@@ -4513,16 +4513,6 @@ def youngHarmonicLift {r n : ℕ}
 
 end
 
-section
-
-
-open scoped BigOperators
-
-namespace Tableaux
-
-end Tableaux
-
-end
 
 section
 
@@ -4667,12 +4657,6 @@ theorem polarization_mem_youngMultihomogeneous_transfer
 
 end
 
-section
-
-
-open scoped BigOperators
-
-end
 
 section
 
