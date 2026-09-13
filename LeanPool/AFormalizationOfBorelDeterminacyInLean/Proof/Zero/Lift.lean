@@ -397,90 +397,52 @@ lemma lift_mem n : hL.1.mk.toWLLift.liftMediumVal ++
     simp only [List.take_add_one, List.zipInitsMap_append, List.getElem?_drop] at ih ⊢
     by_cases hn : 2 * k + 2 + n ≥ H.x.val.length
     · simp_all
-    · rw [List.getElem?_eq_getElem (by as_aux_lemma => omega)]; conv => simp [← List.append_assoc]
-      use ih; rw [getTree_eq' _ ih]
+    · rw [List.getElem?_eq_getElem (by as_aux_lemma => omega), Option.toList_some,
+        List.zipInitsMap_singleton, ← List.append_assoc, gameTree_concat]
+      refine ⟨ih, ?_⟩
+      rw [validExt_long (by simp), getTree_eq' _ ih]
       refine ⟨?_, by
         rw [List.take_left' (WLLift.liftMediumVal_length _)]
         simp only [WLLift.getTree_liftMediumVal, WLLift.liftMediumVal_length,
           List.drop_left', subAt_append]
         congr
         symm
-        calc
-          List.map Prod.fst
-              ((List.take n (List.drop (2 * k + 2) H.x.val)).zipInitsMap fun a y ↦
-                (a, subAt hL.1.mk.toWLLift.liftTree y)) =
-              (List.take n (List.drop (2 * k + 2) H.x.val)).zipInitsMap
-                (fun a _ ↦ a) :=
-            (List.zipInitsMap_map
-              (x := List.take n (List.drop (2 * k + 2) H.x.val))
-              (f := fun a y ↦ (a, subAt hL.1.mk.toWLLift.liftTree y))
-              (g := Prod.fst)).symm
-          _ = List.take n (List.drop (2 * k + 2) H.x.val) := by
-            simp⟩
+        rw [← List.zipInitsMap_map, List.zipInitsMap_eq_map, List.map_id']⟩
       rw [List.take_left' (WLLift.liftMediumVal_length _)]
       simp only [LLift.toWLLift, Lost'.mk_toLift, LLift.takeMin_x_coe,
         WLLift.getTree_liftMediumVal, WLLift.liftMediumVal_length, List.drop_left',
         mem_subAt]
-      have htail_map : List.map Prod.fst
-          ((List.take n (List.drop (2 * k + 2) H.x.val)).zipInitsMap fun a y ↦
-            (a, subAt (pullSub (subAt G.tree (List.take hL.1.mk.minLength H.x.val))
-              (List.drop (2 * k + 2) (List.take hL.1.mk.minLength H.x.val))) y)) =
-          List.take n (List.drop (2 * k + 2) H.x.val) := by
-        calc
-          List.map Prod.fst
-              ((List.take n (List.drop (2 * k + 2) H.x.val)).zipInitsMap fun a y ↦
-                (a, subAt
-                  (pullSub (subAt G.tree (List.take hL.1.mk.minLength H.x.val))
-                    (List.drop (2 * k + 2) (List.take hL.1.mk.minLength H.x.val)))
-                  y)) =
-              (List.take n (List.drop (2 * k + 2) H.x.val)).zipInitsMap
-                (fun a _ ↦ a) :=
-            (List.zipInitsMap_map
-              (x := List.take n (List.drop (2 * k + 2) H.x.val))
-              (f := fun a y ↦
-                (a, subAt
-                  (pullSub (subAt G.tree (List.take hL.1.mk.minLength H.x.val))
-                    (List.drop (2 * k + 2) (List.take hL.1.mk.minLength H.x.val)))
-                  y))
-              (g := Prod.fst)).symm
-          _ = List.take n (List.drop (2 * k + 2) H.x.val) := by
-            simp
-      have hmem : List.take n (List.drop (2 * k + 2) H.x.val) ++
-          [H.x.val[2 * k + 2 + n]] ∈
-          pullSub (subAt G.tree (List.take hL.1.mk.minLength H.x.val))
-            (List.drop (2 * k + 2) (List.take hL.1.mk.minLength H.x.val)) := by
-        by_cases hshort : 2 * k + 2 + n + 1 ≤ hL.1.mk.minLength
-        · rw [mem_pullSub_short (by as_aux_lemma => simp; omega)]
-          constructor
-          · have hdrop : n < (List.drop (2 * k + 2) H.x.val).length := by
-              simp [List.length_drop]
-              omega
-            rw [(show H.x.val[2 * k + 2 + n] =
-                (H.x.val.drop (2 * k + 2))[n]'hdrop by
-              rw [List.getElem_drop'])]
-            rw [List.take_concat_get']
-            simp [List.drop_take]
-            omega
-          · simp only [mem_subAt, List.append_nil]
-            exact hL.1.mk.takeMin.x.prop
-        · rw [mem_pullSub_long (by as_aux_lemma => simp; omega)]
-          use ((H.x.val.drop (2 * k + 2)).drop
-            (hL.1.mk.minLength - (2 * k + 2))).take
-            (2 * k + n + 3 - hL.1.mk.minLength), by
-            apply take_mem ⟨_, _⟩
-            simp [mem_subAt]
-          have hdrop : n < (List.drop (2 * k + 2) H.x.val).length := by
+      rw [← List.zipInitsMap_map, List.zipInitsMap_eq_map, List.map_id']
+      by_cases hshort : 2 * k + 2 + n + 1 ≤ hL.1.mk.minLength
+      · rw [mem_pullSub_short (by as_aux_lemma => simp; omega)]
+        constructor
+        · have hdrop : n < (List.drop (2 * k + 2) H.x.val).length := by
             simp [List.length_drop]
             omega
           rw [(show H.x.val[2 * k + 2 + n] =
               (H.x.val.drop (2 * k + 2))[n]'hdrop by
             rw [List.getElem_drop'])]
           rw [List.take_concat_get']
-          erw [List.drop_take, ← List.take_add, List.take_eq_take_iff, List.length_drop]
-          have := hL.1.mk.le_minLength
+          simp [List.drop_take]
           omega
-      convert hmem using 1
-      exact congrArg (fun xs => xs ++ [H.x.val[2 * k + 2 + n]]) htail_map
+        · simp only [mem_subAt, List.append_nil]
+          exact hL.1.mk.takeMin.x.prop
+      · rw [mem_pullSub_long (by as_aux_lemma => simp; omega)]
+        use ((H.x.val.drop (2 * k + 2)).drop
+          (hL.1.mk.minLength - (2 * k + 2))).take
+          (2 * k + n + 3 - hL.1.mk.minLength), by
+          apply take_mem ⟨_, _⟩
+          simp [mem_subAt]
+        have hdrop : n < (List.drop (2 * k + 2) H.x.val).length := by
+          simp [List.length_drop]
+          omega
+        rw [(show H.x.val[2 * k + 2 + n] =
+            (H.x.val.drop (2 * k + 2))[n]'hdrop by
+          rw [List.getElem_drop'])]
+        rw [List.take_concat_get']
+        erw [List.drop_take, ← List.take_add, List.take_eq_take_iff, List.length_drop]
+        have := hL.1.mk.le_minLength
+        omega
 /-- Auxiliary declaration for the Borel determinacy formalization. -/
 @[simps toWLLift] def toLLift' : WLLift' hyp where
   toWLLift := hL.1.mk.toWLLift
