@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Juan Pablo Traverso Gianini, Aristotle
 -/
 module
-public import LeanPool.MinimumDegreeMatching.Spread
+public import Mathlib.Combinatorics.SimpleGraph.Matching
+import LeanPool.MinimumDegreeMatching.Spread
 
 /-!
 # Perfect and near-perfect matchings from high minimum degree

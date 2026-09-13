@@ -5,14 +5,9 @@ Authors: Juan Pablo Traverso Giannini, Aristotle
 -/
 module
 public import LeanPool.MinimumDegreeMatching.BKLOSelection
-public import Mathlib.Data.Real.Basic
-public import Mathlib.Tactic.FieldSimp
-public import Mathlib.Tactic.Linarith
-public import Mathlib.Tactic.NormNum
-public import Mathlib.Tactic.Positivity
-public import Mathlib.Tactic.Push
-public import Mathlib.Tactic.Ring
-public import Mathlib.Analysis.Complex.ExponentialBounds
+public import Mathlib.Analysis.Complex.Exponential
+import Mathlib.Analysis.Complex.ExponentialBounds
+import Mathlib.Combinatorics.SimpleGraph.Init
 
 /-!
 # BKLO Lemma 10.7 for matchings

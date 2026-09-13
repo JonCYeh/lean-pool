@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Juan Pablo Traverso Giannini, Aristotle
 -/
 module
-public import LeanPool.MinimumDegreeMatching.Spread
-public import Mathlib.Tactic.Order
-public import Mathlib.Tactic.Push
+public import Mathlib.Data.Finset.Sym
+import Mathlib.Tactic.Bound.Init
+import Mathlib.Combinatorics.SimpleGraph.Init
 
 /-!
 # Finite edge-set infrastructure for BKLO Lemma 10.7 at `r = 2`

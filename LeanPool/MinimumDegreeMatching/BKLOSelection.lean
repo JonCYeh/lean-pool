@@ -6,11 +6,14 @@ Authors: Juan Pablo Traverso Giannini, Aristotle
 module
 public import LeanPool.MinimumDegreeMatching.BKLOInfrastructure
 public import Mathlib.Data.Real.Basic
-public import Mathlib.Tactic.Linarith
-public import Mathlib.Tactic.NormNum
-public import Mathlib.Tactic.Order
-public import Mathlib.Tactic.Positivity
-public import Mathlib.Tactic.Ring
+import LeanPool.MinimumDegreeMatching.Spread
+import Mathlib.Tactic.Positivity.Finset
+import Mathlib.Tactic.NormNum.OfScientific
+import Mathlib.Tactic.NormNum.DivMod
+import Mathlib.Tactic.NormNum.Abs
+import Mathlib.Data.Rat.Cast.Order
+import Mathlib.Tactic.Linarith.Frontend
+import Mathlib.Tactic.Ring.RingNF
 
 /-!
 # Deterministic simultaneous matching selection
