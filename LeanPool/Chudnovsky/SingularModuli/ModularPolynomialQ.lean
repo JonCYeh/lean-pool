@@ -406,8 +406,9 @@ theorem liouvilleBaseCase (R : Subring ℂ) (h : ℍ → ℂ)
       · -- `Im (γ • τ) ≥ 1/2` in `𝒟`, hence `‖q (γ • τ)‖ ≤ e^{-π}`
         rw [mem_closedBall_zero_iff, norm_q]
         have him_half : (1 : ℝ) / 2 ≤ (γ • τ).im := by
-          nlinarith [ModularGroup.three_le_four_mul_im_sq_of_mem_fd hmem, (γ • τ).im_pos]
-        exact Real.exp_le_exp.mpr (by nlinarith [Real.pi_pos, him_half])
+          nlinarith only [ModularGroup.three_le_four_mul_im_sq_of_mem_fd hmem, (γ • τ).im_pos]
+        apply Real.exp_le_exp.mpr
+        linear_combination 2 * mul_le_mul_of_nonneg_left him_half Real.pi_pos.le
       · -- moduli match: `‖H z‖ = ‖h τ‖ = ‖h (γ • τ)‖ = ‖H (q (γ • τ))‖`
         rw [← hqτ, heqH τ, heqH (γ • τ), hinv γ τ]
   -- maximum modulus principle: `H` is constant on the disc with value `H 0`
