@@ -3137,6 +3137,12 @@ public import LeanPool.MatchingLogic.Soundness
 public import LeanPool.MinModulusUniqueMultisetSum
 public import LeanPool.MinModulusUniqueMultisetSum.ElemAbelian2
 public import LeanPool.MinModulusUniqueMultisetSum.UniqueSums
+public import LeanPool.MinimumDegreeMatching
+public import LeanPool.MinimumDegreeMatching.BKLO
+public import LeanPool.MinimumDegreeMatching.BKLOInfrastructure
+public import LeanPool.MinimumDegreeMatching.BKLOSelection
+public import LeanPool.MinimumDegreeMatching.Basic
+public import LeanPool.MinimumDegreeMatching.Spread
 public import LeanPool.MisereGames
 public import LeanPool.MisereGames.AugmentedForm
 public import LeanPool.MisereGames.AugmentedForm.Lift

@@ -37,11 +37,15 @@ That review checks the headline contracts and dependencies across modules. It
 can request exact declaration or file excerpts from the original diff, with up
 to three source follow-ups when summaries leave a semantic question unanswered. It
 must explicitly resolve every non-passing portion, finding, and open question
-before it can pass; unresolved obligations force discussion. Missing/malformed
+before it can pass; unresolved obligations force discussion. Accepted resolutions
+persist across follow-ups, and the reviewer can explicitly reopen an obligation
+when later evidence changes its assessment. Missing/malformed
 portion results or integration evidence that cannot fit fail the run rather than
 silently reducing coverage. Small diffs still use one call per rubric.
 
-A context-window rejection retries using smaller lossless portions. The token
+A malformed JSON response retries the same model call at most twice, preserving
+completed portions. Persistent format errors and unrelated worker failures remain
+failures. A context-window rejection retries using smaller lossless portions. The token
 estimate is conservative, not an exact tokenizer measurement; the ceiling does
 not change the model's actual context window. Reported usage includes all source
 and integration calls, including successful work before a retry; unknown usage
