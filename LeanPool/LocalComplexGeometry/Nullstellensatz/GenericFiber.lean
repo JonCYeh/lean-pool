@@ -362,6 +362,18 @@ theorem aeval_contractedPreparedPolynomial {d : ℕ}
     aeval_preparedGermPolynomial]
   simp only [Ideal.Quotient.mkₐ_eq_mk]
 
+private theorem aeval_genericPolynomialMap
+    (p : Polynomial (ContractedGermQuotient P)) :
+    Polynomial.aeval (genericLastCoordinate P)
+        (p.map (algebraMap (ContractedGermQuotient P) (ContractedFractionField P))) =
+      algebraMap (AmbientGermQuotient P) (AmbientFractionField P)
+        (Polynomial.aeval (lastCoordinateQuotientClass P) p) := by
+  rw [Polynomial.aeval_map_algebraMap]
+  change Polynomial.aeval
+      (algebraMap (AmbientGermQuotient P) (AmbientFractionField P)
+        (lastCoordinateQuotientClass P)) p = _
+  rw [Polynomial.aeval_algebraMap_apply]
+
 @[simp]
 theorem aeval_genericRemainderPolynomial {d : ℕ}
     (r : Fin d → HolomorphicGerm n) :
@@ -369,12 +381,7 @@ theorem aeval_genericRemainderPolynomial {d : ℕ}
         (genericRemainderPolynomial P r) =
       algebraMap (AmbientGermQuotient P) (AmbientFractionField P)
         (Ideal.Quotient.mk P (WPTBridge.remainderPolynomialGerm r)) := by
-  rw [genericRemainderPolynomial, Polynomial.aeval_map_algebraMap]
-  change Polynomial.aeval
-      (algebraMap (AmbientGermQuotient P) (AmbientFractionField P)
-        (lastCoordinateQuotientClass P))
-      (contractedRemainderPolynomial P r) = _
-  rw [Polynomial.aeval_algebraMap_apply,
+  rw [genericRemainderPolynomial, aeval_genericPolynomialMap,
     aeval_contractedRemainderPolynomial]
 
 @[simp]
@@ -385,12 +392,7 @@ theorem aeval_genericPreparedPolynomial {d : ℕ}
         (genericPreparedPolynomial P a ha) =
       algebraMap (AmbientGermQuotient P) (AmbientFractionField P)
         (Ideal.Quotient.mk P (WPTBridge.preparedPolynomialGerm a ha)) := by
-  rw [genericPreparedPolynomial, Polynomial.aeval_map_algebraMap]
-  change Polynomial.aeval
-      (algebraMap (AmbientGermQuotient P) (AmbientFractionField P)
-        (lastCoordinateQuotientClass P))
-      (contractedPreparedPolynomial P a ha) = _
-  rw [Polynomial.aeval_algebraMap_apply,
+  rw [genericPreparedPolynomial, aeval_genericPolynomialMap,
     aeval_contractedPreparedPolynomial]
 
 /-- The prepared polynomial annihilates the generic last-coordinate class. -/
@@ -446,7 +448,7 @@ theorem mem_prime_iff_genericRemainder_aeval_eq_zero {d : ℕ}
     apply Ideal.Quotient.eq_zero_iff_mem.mp
     apply IsFractionRing.injective (AmbientGermQuotient P)
       (AmbientFractionField P)
-    simpa using hh
+    simpa only [map_zero] using hh
 
 /-- The two fraction fields form a finite-dimensional extension whenever `P`
 contains the prepared monic equation. -/
