@@ -1225,6 +1225,8 @@ def _integrate_portions(
     bundle = json.loads(evidence)
     bundle["source_followups"] = []
     bundle["integration_history"] = []
+    accepted: dict[str, dict] = {}
+    bundle["accepted_resolutions"] = []
     for iteration in range(1, 5):
         bundle["obligations"] = obligations
         material = json.dumps(bundle, ensure_ascii=False)
@@ -1234,7 +1236,14 @@ def _integrate_portions(
             raise ValueError(
                 "Integration evidence exceeds budget; no evidence was discarded"
             )
-        final = send(messages)
+        response = send(messages)
+        final = replace(
+            response,
+            payload=review_portions.accumulate_resolutions(
+                response.payload, obligations, accepted
+            ),
+        )
+        bundle["accepted_resolutions"] = list(accepted.values())
         queries = final.payload.get("source_requests", [])
         if not isinstance(queries, list) or any(
             not isinstance(query, str) or not query.strip() for query in queries
@@ -1244,7 +1253,7 @@ def _integrate_portions(
             )
         if not queries:
             break
-        bundle["integration_history"].append(final.payload)
+        bundle["integration_history"].append(response.payload)
         obligations.update(
             review_portions.report_obligations(
                 f"integration:{iteration}", final.payload
