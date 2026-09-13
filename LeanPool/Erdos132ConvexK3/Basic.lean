@@ -121,21 +121,11 @@ theorem sqDist_nonneg (a b : Point ℝ) : 0 ≤ sqDist a b := by
 /-- Distinct real points have positive squared distance. -/
 theorem sqDist_pos_of_ne {a b : Point ℝ} (h : a ≠ b) : 0 < sqDist a b := by
   by_contra hn
-  have hle : sqDist a b ≤ 0 := le_of_not_gt hn
-  have h1 : (b.1 - a.1) ^ 2 = 0 := by
-    have hsq1 : 0 ≤ (b.1 - a.1) ^ 2 := sq_nonneg _
-    have hsq2 : 0 ≤ (b.2 - a.2) ^ 2 := sq_nonneg _
-    unfold sqDist at hle
-    nlinarith
-  have h2 : (b.2 - a.2) ^ 2 = 0 := by
-    have hsq1 : 0 ≤ (b.1 - a.1) ^ 2 := sq_nonneg _
-    have hsq2 : 0 ≤ (b.2 - a.2) ^ 2 := sq_nonneg _
-    unfold sqDist at hle
-    nlinarith
-  apply h
-  apply Prod.ext
-  · exact (sub_eq_zero.mp (sq_eq_zero_iff.mp h1)).symm
-  · exact (sub_eq_zero.mp (sq_eq_zero_iff.mp h2)).symm
+  have hz : sqDist a b = 0 := le_antisymm (le_of_not_gt hn) (sqDist_nonneg a b)
+  have hcoords := (add_eq_zero_iff_of_nonneg (sq_nonneg _) (sq_nonneg _)).mp hz
+  exact h (Prod.ext
+    (sub_eq_zero.mp (sq_eq_zero_iff.mp hcoords.1)).symm
+    (sub_eq_zero.mp (sq_eq_zero_iff.mp hcoords.2)).symm)
 
 /-- The top-three predicate supplies its global distance bound for every
 ordered pair of distinct labels, not only for the increasing representative
