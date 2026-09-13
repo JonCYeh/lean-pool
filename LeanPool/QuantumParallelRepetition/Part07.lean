@@ -2229,7 +2229,8 @@ private theorem
       linarith [mul_nonneg Kmass_nonnegative
         (sub_nonneg.mpr diagonal_budget)]
 
-private def dSVDensityRationalHeterogeneousStoppedCommonPrefixFailureCopy
+/-- The joint failure vector at a stage preceding the stopping position. -/
+def dSVDensityRationalHeterogeneousStoppedCommonPrefixFailureCopy
     {S N d L : ℕ} (width : Fin S → ℝ)
     (schedule : Fin L → Fin S)
     (ξ ζ : BipartiteUnitVector d)

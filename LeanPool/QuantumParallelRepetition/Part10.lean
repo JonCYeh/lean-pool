@@ -6,6 +6,7 @@ Authors: OpenAI, Dean Cureton
 module
 
 public import LeanPool.QuantumParallelRepetition.Part09
+import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
 
 /-! # Quantum parallel repetition, part 10 -/
 
