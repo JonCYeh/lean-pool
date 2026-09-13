@@ -629,31 +629,23 @@ lemma rectangle_coprime_ncard_lower_bound (η : ℝ) (hη_pos : 0 < η) (hη_lt 
   set δ := (1 / 6 - η) / 2 with hδ_def
   have hδ : 0 < δ := by linarith
   obtain ⟨N₁, hN₁⟩ := interval_ncard_lower_bound η hη_pos hη_lt
-  obtain ⟨N₂, hN₂⟩ := interval_ncard_upper_bound η hη_pos
   obtain ⟨N₃, hN₃⟩ := ceil_le_floor_for_large_n η hη_pos hη_lt
-  refine ⟨δ ^ 2 / 32, max (max N₁ N₂) (max N₃ (⌈160 / δ ^ 2⌉₊ + 1)), ?_, ?_⟩
+  refine ⟨δ ^ 2 / 32, max N₁ (max N₃ (⌈160 / δ ^ 2⌉₊ + 1)), ?_, ?_⟩
   · positivity
   · intro n hn
-    have hn₁ : N₁ ≤ n := le_of_max_le_left (le_of_max_le_left hn)
-    have hn₂ : N₂ ≤ n := le_of_max_le_right (le_of_max_le_left hn)
+    have hn₁ : N₁ ≤ n := le_of_max_le_left hn
     have hn₃ : N₃ ≤ n := le_of_max_le_left (le_of_max_le_right hn)
     have hL_lower := hN₁ n hn₁
-    have hL_upper := hN₂ n hn₂
     have hAB := hN₃ n hn₃
     have hn1 : 1 ≤ n := by omega
     set L := (Set.Icc (⌈η * (n : ℝ)⌉ : ℤ) (⌊(n : ℝ) / 6⌋ : ℤ)).ncard with hL_def
     have hnn : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
-    have hn_large : 160 / δ ^ 2 ≤ (n : ℝ) := by
-      have h4 : (⌈160 / δ ^ 2⌉₊ + 1 : ℕ) ≤ n := le_of_max_le_right (le_of_max_le_right hn)
-      have : (⌈160 / δ ^ 2⌉₊ : ℝ) ≤ (n : ℝ) := by
-        calc (⌈160 / δ ^ 2⌉₊ : ℝ) ≤ (⌈160 / δ ^ 2⌉₊ + 1 : ℕ) := by
-              exact_mod_cast Nat.le_succ _
-          _ ≤ (n : ℝ) := Nat.cast_le.mpr h4
-      linarith [Nat.le_ceil (160 / δ ^ 2)]
+    have hn_large : 160 / δ ^ 2 ≤ (n : ℝ) :=
+      (Nat.le_ceil _).trans (Nat.cast_le.mpr (by omega))
     have hprime := prime_divisor_bound η hη_pos n hn1
     calc δ ^ 2 / 32 * (n : ℝ) ^ 2
         ≤ (L : ℝ) ^ 2 / 16 - 5 * (n : ℝ) :=
-          quadratic_dominates_linear δ (L : ℝ) (n : ℝ) (n : ℝ) hδ hnn hL_lower (by linarith)
+          quadratic_dominates_linear δ (L : ℝ) (n : ℝ) (n : ℝ) hδ hnn hL_lower le_rfl
             hn_large
       _ ≤ ({pq : ℤ × ℤ |
             (⌈η * (n : ℝ)⌉ : ℤ) ≤ pq.1 ∧ pq.1 ≤ (⌊(n : ℝ) / 6⌋ : ℤ) ∧
@@ -4844,25 +4836,18 @@ lemma half_reciprocal_sum_le_min_reciprocal
     (b d : ℕ) (hb_pos : 1 ≤ b) (hb_lt : b < d) :
     1 / (2 * (b : ℝ)) + 1 / (2 * ((d : ℝ) - b)) ≤
     1 / min (b : ℝ) ((d : ℝ) - b) := by
-  have h₂ : (d : ℝ) - b > 0 := by
-    simp_all
-  have hb0 : (0 : ℝ) < (b : ℝ) := by exact_mod_cast hb_pos
-  by_cases h₄ : (b : ℝ) ≤ (d : ℝ) - b
-  · rw [min_eq_left h₄]
-    have h₁₁ : 1 / (2 * ((d : ℝ) - b)) ≤ 1 / (2 * (b : ℝ)) := by
-      apply one_div_le_one_div_of_le
-      · positivity
-      · nlinarith
-    have h₁₃ : 1 / (2 * (b : ℝ)) + 1 / (2 * (b : ℝ)) = 1 / (b : ℝ) := by field_simp; ring
-    linarith
-  · rw [min_eq_right (by linarith)]
-    have h₁₁ : 1 / (2 * (b : ℝ)) ≤ 1 / (2 * ((d : ℝ) - b)) := by
-      apply one_div_le_one_div_of_le
-      · positivity
-      · nlinarith
-    have h₁₃ : 1 / (2 * ((d : ℝ) - b)) + 1 / (2 * ((d : ℝ) - b)) = 1 / ((d : ℝ) - b) := by
-      field_simp; ring
-    linarith
+  have hb0 : (0 : ℝ) < b := by exact_mod_cast hb_pos
+  have hdb : (0 : ℝ) < (d : ℝ) - b := sub_pos.mpr (by exact_mod_cast hb_lt)
+  have hmin := mul_pos (show (0 : ℝ) < 2 by norm_num) (lt_min hb0 hdb)
+  calc
+    _ ≤ 1 / (2 * min (b : ℝ) ((d : ℝ) - b)) +
+        1 / (2 * min (b : ℝ) ((d : ℝ) - b)) :=
+      add_le_add
+        (one_div_le_one_div_of_le hmin
+          (mul_le_mul_of_nonneg_left (min_le_left _ _) (by norm_num)))
+        (one_div_le_one_div_of_le hmin
+          (mul_le_mul_of_nonneg_left (min_le_right _ _) (by norm_num)))
+    _ = _ := by rw [← add_div, div_mul_eq_div_div]; norm_num
 
 lemma fourier_mass_residue_class_bound
     (n d : ℕ) [NeZero n] [NeZero d] (hn : 2 ≤ n)
@@ -6252,21 +6237,11 @@ theorem product_bound_first_term (n d R : ℕ) (hd_pos : 0 < d) (hR_pos : 0 < R)
 
 lemma product_bound_second_term (n d R : ℕ) (hR_pos : 0 < R) (hd_le : d ≤ n) :
     n / 2 * (d / R) ≤ n ^ 2 / (2 * R) := by
-  have h₁ : n / 2 * (d / R) ≤ n / 2 * (n / R) := by
-    have h₂ : d / R ≤ n / R := by
-      apply Nat.div_le_div_right
-      linarith
-    have h₃ : 0 ≤ n / 2 := by positivity
-    nlinarith
-  have h₇ : (n / 2) * 2 ≤ n := Nat.div_mul_le_self _ _
-  have h₈ : (n / R) * R ≤ n := Nat.div_mul_le_self _ _
-  have h₆ : (n / 2) * (n / R) * (2 * R) ≤ n ^ 2 := by
-    calc (n / 2) * (n / R) * (2 * R) = ((n / 2) * 2) * ((n / R) * R) := by ring
-      _ ≤ n * n := Nat.mul_le_mul h₇ h₈
-      _ = n ^ 2 := by ring
-  have h₂ : n / 2 * (n / R) ≤ n ^ 2 / (2 * R) :=
-    (Nat.le_div_iff_mul_le (by positivity)).mpr h₆
-  linarith
+  calc
+    n / 2 * (d / R) ≤ n / 2 * (n / R) :=
+      Nat.mul_le_mul_left _ (Nat.div_le_div_right hd_le)
+    _ ≤ n ^ 2 / (2 * R) := by
+      simpa only [pow_two] using nat_div_prod_le n n 2 R (by decide) hR_pos
 
 lemma combine_frac_bounds (n R : ℕ) (hR_pos : 0 < R) :
     n ^ 2 / (4 * R) + n ^ 2 / (2 * R) ≤ 3 * n ^ 2 / (4 * R) := by
@@ -6929,12 +6904,13 @@ lemma ratio_bound_core (bad Hn c C n2 decay ε : ℝ)
     (h_lower : c * n2 ≤ Hn)
     (h_decay : decay < c * ε / C) :
     bad / Hn < ε := by
-  have h_C_decay_lt_cε : C * decay < c * ε := by exact (lt_div_iff₀' hC_pos).mp h_decay
-  have h_Cn2_decay_lt_cεn2 : C * n2 * decay < c * ε * n2 := by nlinarith
-  have h_cεn2_le_εHn : c * ε * n2 ≤ ε * Hn := by nlinarith
-  have h_bad_lt_εHn : bad < ε * Hn := by nlinarith
-  have h_Hn_pos : 0 < Hn := by nlinarith
-  exact (div_lt_iff₀ h_Hn_pos).mpr h_bad_lt_εHn
+  apply (div_lt_iff₀ ((mul_pos hc_pos hn2_pos).trans_le h_lower)).mpr
+  have hdecay := mul_lt_mul_of_pos_right ((lt_div_iff₀' hC_pos).mp h_decay) hn2_pos
+  have hlower := mul_le_mul_of_nonneg_left h_lower hε_pos.le
+  calc
+    bad ≤ C * n2 * decay := h_upper
+    _ < ε * (c * n2) := by simpa only [mul_assoc, mul_comm, mul_left_comm] using hdecay
+    _ ≤ ε * Hn := hlower
 
 lemma ratio_bound_from_three_lemmas (c C : ℝ) (N₁ N₂ : ℕ) (η θ : ℝ)
     (hc_pos : 0 < c) (hC_pos : 0 < C)
