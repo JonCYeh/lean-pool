@@ -37,7 +37,9 @@ That review checks the headline contracts and dependencies across modules. It
 can request exact declaration or file excerpts from the original diff, with up
 to three source follow-ups when summaries leave a semantic question unanswered. It
 must explicitly resolve every non-passing portion, finding, and open question
-before it can pass; unresolved obligations force discussion. Missing/malformed
+before it can pass; unresolved obligations force discussion. Accepted resolutions
+persist across follow-ups, and the reviewer can explicitly reopen an obligation
+when later evidence changes its assessment. Missing/malformed
 portion results or integration evidence that cannot fit fail the run rather than
 silently reducing coverage. Small diffs still use one call per rubric.
 

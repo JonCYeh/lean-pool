@@ -644,3 +644,77 @@ def test_completed_rubrics_survive_a_later_failure(monkeypatch, tmp_path):
     saved = json.loads(destination.read_text())
     assert len(saved) == 1
     assert saved[0]["payload"]["bottom_line"] == "completed faithfulness"
+
+
+@pytest.mark.parametrize("reopen", [False, True])
+def test_integration_keeps_answers_across_followups_unless_reopened(reopen):
+    """A follow-up retains earlier answers and honors explicit retractions."""
+    calls = []
+
+    def prepare(evidence, rules):
+        return [{"role": "user", "content": evidence}]
+
+    def send(messages):
+        bundle = json.loads(messages[0]["content"])
+        calls.append(bundle)
+        if len(calls) == 1:
+            return result(
+                {
+                    "verdict": "pass",
+                    "resolutions": [
+                        {
+                            "id": "1:question:1",
+                            "evidence": "The supplied definitions settle this.",
+                        }
+                    ],
+                    "source_requests": ["Known"],
+                }
+            )
+        assert bundle["accepted_resolutions"][0]["id"] == "1:question:1"
+        return result(
+            {
+                "verdict": "pass",
+                "resolutions": [
+                    {
+                        "id": "integration:1:source:1",
+                        "evidence": "The exact Known definition is now supplied.",
+                    }
+                ],
+                "reopened_obligations": ["1:question:1"] if reopen else [],
+                "source_requests": [],
+            }
+        )
+
+    answer = review._integrate_portions(
+        "diff --git a/P.lean b/P.lean\n+def Known := 0\n",
+        "{}",
+        {"1:question:1": "Is the foundation standard?"},
+        10_000,
+        prepare,
+        send,
+    )
+    assert answer.payload["verdict"] == ("discuss" if reopen else "pass")
+    if reopen:
+        assert "Is the foundation standard?" in str(answer.payload["findings"])
+    else:
+        assert len(answer.payload["resolutions"]) == 2
+
+
+def test_unknown_resolution_does_not_enter_the_accepted_ledger():
+    """An unrecognized ID cannot gain credibility by surviving a follow-up."""
+    accepted = {}
+    payload = {
+        "verdict": "pass",
+        "resolutions": [{"id": "invented", "evidence": "claim"}],
+    }
+    updated = review_portions.accumulate_resolutions(payload, {}, accepted)
+    assert accepted == {}
+    assert review_portions.enforce_resolutions(updated, {})["verdict"] == "discuss"
+
+
+def test_unknown_reopened_obligation_cannot_approve():
+    """An invalid retraction remains visible as an integration concern."""
+    updated = review_portions.accumulate_resolutions(
+        {"verdict": "pass", "reopened_obligations": ["invented"]}, {}, {}
+    )
+    assert review_portions.enforce_resolutions(updated, {})["verdict"] == "discuss"
