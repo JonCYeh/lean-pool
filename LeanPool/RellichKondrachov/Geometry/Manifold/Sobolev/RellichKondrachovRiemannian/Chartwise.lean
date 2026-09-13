@@ -735,149 +735,33 @@ omit [T2Space M] in
   classical
   intro μM
   let μchart := FiniteChartData.chartMeasure (d := dR.d) (I := I) μM i
-  let K : Set E := FiniteChartData.rhoSupportImage (d := dR.d) (I := I) i
-  -- Abbreviations for the relevant `extendByZero` maps.
-  let eChart :=
-    MeasureTheory.Lp.extendByZeroₗᵢ (μ := μchart) (E := ℝ) (p := (2 : ℝ≥0∞)) (s := K)
-      (rhoSupportImage_measurable (dR := dR) (I := I) i)
-  let eVol :=
-    MeasureTheory.Lp.extendByZeroₗᵢ (μ := (volume : Measure E)) (E := ℝ) (p := (2 : ℝ≥0∞)) (s := K)
-      (rhoSupportImage_measurable (dR := dR) (I := I) i)
-  -- The chartwise `L²` component.
-  let u : (E →₂[μchart] ℝ) := (FiniteChartData.h1ToChartL2 (d := dR.d) (I := I) (μ := μM) i) x
-  -- `h1ToChartL2Range` is a codomain restriction of `h1ToChartL2`, so its underlying value is `u`.
-  have hz_coe :
-      ((h1ToChartL2Range (dR := dR) (I := I) (i := i)) x : (E →₂[μchart] ℝ)) = u := by
-    -- `simp` can unfold the codomain restriction, but we also unfold `μM` so both sides match.
-    simp [h1ToChartL2Range, u, μM]
-  -- Identify the preimage in the restricted `L²` space corresponding to `u` under `extendByZero`.
-  let uK : (E →₂[μchart.restrict K] ℝ) :=
-    (LinearIsometry.equivRange eChart).symm ((h1ToChartL2Range (dR := dR) (I := I) (i := i)) x)
-  have heChart_uK : (eChart uK : (E →₂[μchart] ℝ)) = u := by
-    -- Use `apply_symm_apply` in the range equivalence.
-    have :
-        (LinearIsometry.equivRange eChart) uK =
-          (h1ToChartL2Range (dR := dR) (I := I) (i := i)) x := by
-      simp only [uK]
-      exact (LinearIsometry.equivRange eChart).apply_symm_apply
-          ((h1ToChartL2Range (dR := dR) (I := I) (i := i)) x)
-    -- Coerce to `L²(μchart)` and simplify.
-    have hcoe := congrArg Subtype.val this
-    rw [hz_coe] at hcoe
-    exact hcoe
-  -- The `changeMeasureL` used in `l2ChartToVolumeOnRhoSupportImage` from `μchart` to
-  -- `μchart.restrict K`.
-  let cm :
-      (E →₂[μchart] ℝ) →L[ℝ] (E →₂[μchart.restrict K] ℝ) :=
-    MeasureTheory.Lp.changeMeasureL
-      (μ := μchart) (ν := μchart.restrict K) (E := ℝ) (p := (2 : ℝ≥0∞)) (c := (1 : ℝ≥0∞))
-      (by simp) (restrict_le_one_smul (μ := μchart) (s := K))
-      (by simp)
-  -- `uK` is the same as `changeMeasureL` applied to `u`, since `u` is supported in `K`.
-  have huK_eq : uK = cm u := by
-    -- Show `uK =ᵐ[μchart.restrict K] u` (by restricting the `extendByZero` AE equality), then
-    -- compare
-    -- to `cm u =ᵐ[μchart.restrict K] u`.
-    have hu_indicator :
-        (u : E → ℝ) =ᵐ[μchart] K.indicator fun x => uK x := by
-      -- `extendByZero` is `indicator` a.e.
-      have hAE :
-          ((eChart uK : (E →₂[μchart] ℝ)) : E → ℝ) =ᵐ[μchart]
-            K.indicator fun x => uK x := by
-        simpa [eChart] using
-          (MeasureTheory.Lp.extendByZeroₗᵢ_ae_eq (μ := μchart) (E := ℝ) (p := (2 : ℝ≥0∞)) (s := K)
-            (rhoSupportImage_measurable (dR := dR) (I := I) i) uK)
-      -- Rewrite `eChart uK` as `u`.
-      have hu_eq : ((eChart uK : (E →₂[μchart] ℝ)) : E → ℝ) =ᵐ[μchart] u := by
-        -- `heChart_uK` is equality in `L²`, hence a.e. equality.
-        rw [heChart_uK]
-      -- Combine.
-      exact hu_eq.symm.trans hAE
-    have hu_on : ∀ᵐ x : E ∂μchart, x ∈ K → u x = uK x := by
-      filter_upwards [hu_indicator] with x hx hxK
-      have : K.indicator (fun y => uK y) x = uK x := by simp [Set.indicator_of_mem, hxK]
-      -- On `K`, the indicator equals the function itself.
-      simpa [this] using hx
-    have hu_restrict : (u : E → ℝ) =ᵐ[μchart.restrict K] fun x => uK x :=
-      (ae_restrict_iff' (μ := μchart) (s := K)
-        (rhoSupportImage_measurable (dR := dR) (I := I) i)).2 hu_on
-    have hcm_ae :
-        (cm u : E → ℝ) =ᵐ[μchart.restrict K] u :=
-      MeasureTheory.Lp.changeMeasureL_coeFn_ae_eq (μ := μchart) (ν := μchart.restrict K) (E := ℝ)
-        (p := (2 : ℝ≥0∞)) (c := (1 : ℝ≥0∞))
-        (by simp)
-        (restrict_le_one_smul (μ := μchart) (s := K))
-        (by simp) u
-    refine MeasureTheory.Lp.ext (μ := μchart.restrict K) (E := ℝ) (p := (2 : ℝ≥0∞)) ?_
-    -- Compare almost everywhere representatives on the restricted measure.
-    have : (uK : E → ℝ) =ᵐ[μchart.restrict K] (cm u : E → ℝ) :=
-      hu_restrict.symm.trans hcm_ae.symm
-    exact this
-  -- Compute both sides as `extendByZero` of the same restricted-volume witness.
-  -- Left side: unfold the range equivalence and use `huK_eq` to identify the restricted witness.
-  have hL :
-      (↑((eL2RangeChartVol (dR := dR) (I := I) (i := i) (F := ℝ))
-            ((h1ToChartL2Range (dR := dR) (I := I) (i := i)) x)) : (E →₂[(volume : Measure E)] ℝ)) =
-        eVol
-          ((l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) (i := i) (F := ℝ)) uK) := by
-    -- Unfold the definition of the `extendByZero`-range equivalence.
-    -- The resulting expression is exactly `extendByZero` after `l2EquivVolumeOnRhoSupportImage'`
-    -- applied to the
-    -- canonical `equivRange` preimage `uK`.
-    simp [eL2RangeChartVol, l2ExtendByZeroRangeEquivVolumeOnRhoSupportImage',
-      MeasureTheory.Lp.extendByZeroRangeEquivOfRestrictChangeMeasureEquiv, eChart, eVol, uK,
-      l2EquivVolumeOnRhoSupportImage']
-  -- Right side: `projToVolumeTarget` is `chartTargetToVolumeTarget ∘ proj`, and the scalar
-  -- component is
-  -- exactly `l2ChartToVolumeOnRhoSupportImage` applied to the chartwise `L²` value `u`.
-  have hR :
-      ((projToVolumeTarget (dR := dR) (I := I) (i := i) (x.1 : FiniteChartData.h1Target (d := dR.d)
-        (I := I) μM))).1 =
-        eVol
-          ((l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) (i := i) (F := ℝ)) (cm u)) := by
-    -- Reduce to the definition of `l2ChartToVolumeOnRhoSupportImage` applied to the chartwise
-    -- scalar component.
-    have hu' : ((x.1 : FiniteChartData.h1Target (d := dR.d) (I := I) μM) i).1 = u := by
-      -- `u` is exactly the `i`-th scalar coordinate of `x`.
-      simp [u, FiniteChartData.h1ToChartL2, FiniteChartData.h1ToChart,
-        ContinuousLinearMap.proj_apply]
-    -- Expand `projToVolumeTarget` and rewrite the scalar component using `hu'`.
-    -- Then unfold `l2ChartToVolumeOnRhoSupportImage` and align the `changeMeasureL` proof terms via
-    -- `changeMeasureL_congr`.
-    simp only [projToVolumeTarget, chartTargetToVolumeTarget,
-      l2ChartToVolumeOnRhoSupportImage, ContinuousLinearMap.comp_apply,
-      ContinuousLinearMap.proj_apply, ContinuousLinearMap.prod_apply,
-      ContinuousLinearMap.coe_fst', hu', ContinuousLinearEquiv.coe_coe,
-      LinearIsometry.coe_toContinuousLinearMap, ContinuousLinearMap.coe_snd', cm]
-    -- Discharge the remaining definitional mismatch in `changeMeasureL`.
-    refine congrArg
-      eVol ?_
-    refine congrArg (l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) (i := i) (F := ℝ)) ?_
-    -- `changeMeasureL` is independent of proof arguments.
-    exact
-      congrArg (fun T => T u)
-        (MeasureTheory.Lp.changeMeasureL_congr (μ := μchart) (ν := μchart.restrict K) (E := ℝ)
-          (p := (2 : ℝ≥0∞)) (c := (1 : ℝ≥0∞))
-          (hc₁ := (by simp))
-          (hc₂ := _)
-          (hν₁ := restrict_le_one_smul (μ := μchart) (s := K))
-          (hν₂ := _)
-          (hp₁ := (by simp))
-          (hp₂ := _))
-  -- Combine: align the restricted witness and conclude.
-  calc
-    ↑((eL2RangeChartVol (dR := dR) (I := I) (i := i) (F := ℝ))
-          ((h1ToChartL2Range (dR := dR) (I := I) (i := i)) x)) =
-        eVol
-          ((l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) (i := i) (F := ℝ)) uK) := by
-          simp [hL]
-    _ =
-        eVol
-          ((l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) (i := i) (F := ℝ)) (cm u)) := by
-          simp [huK_eq]
-    _ = ((projToVolumeTarget (dR := dR) (I := I) (i := i)
-          (x.1 : FiniteChartData.h1Target (d := dR.d) (I := I) μM))).1 := by
-          exact hR.symm
+  let K := FiniteChartData.rhoSupportImage (d := dR.d) (I := I) i
+  have hKm : MeasurableSet K := rhoSupportImage_measurable (dR := dR) (I := I) i
+  let eChart := Lp.extendByZeroₗᵢ (μ := μchart) (E := ℝ) (p := (2 : ℝ≥0∞)) (s := K) hKm
+  let eVol := Lp.extendByZeroₗᵢ (μ := (volume : Measure E)) (E := ℝ)
+    (p := (2 : ℝ≥0∞)) (s := K) hKm
+  let z := h1ToChartL2Range (dR := dR) (I := I) i x
+  let uK := (LinearIsometry.equivRange eChart).symm z
+  let cm := Lp.changeMeasureL (μ := μchart) (ν := μchart.restrict K) (E := ℝ)
+    (p := (2 : ℝ≥0∞)) (c := (1 : ℝ≥0∞)) (by simp)
+    (restrict_le_one_smul μchart K) (by simp)
+  have heChart_uK : eChart uK = (z : E →₂[μchart] ℝ) :=
+    congrArg Subtype.val ((LinearIsometry.equivRange eChart).apply_symm_apply z)
+  have huK_eq : uK = cm (z : E →₂[μchart] ℝ) := by
+    have hz : ((z : E →₂[μchart] ℝ) : E → ℝ) =ᵐ[μchart] K.indicator (fun t => uK t) := by
+      rw [← heChart_uK]
+      exact Lp.extendByZeroₗᵢ_ae_eq hKm uK
+    have hzK : ((z : E →₂[μchart] ℝ) : E → ℝ) =ᵐ[μchart.restrict K] uK :=
+      Filter.EventuallyEq.trans (ae_restrict_of_ae hz) (indicator_ae_eq_restrict hKm)
+    exact Lp.ext (hzK.symm.trans
+      (Lp.changeMeasureL_coeFn_ae_eq (μ := μchart) (ν := μchart.restrict K) (E := ℝ)
+        (p := (2 : ℝ≥0∞)) (c := (1 : ℝ≥0∞)) (by simp)
+        (restrict_le_one_smul μchart K) (by simp) (z : E →₂[μchart] ℝ)).symm)
+  change eVol (l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) i ℝ uK) =
+    eVol (l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) i ℝ
+      (cm (z : E →₂[μchart] ℝ)))
+  exact congrArg (fun u => eVol (l2EquivVolumeOnRhoSupportImage' (dR := dR) (I := I) i ℝ u))
+    huK_eq
 
 /-!
 ### Compactness: chartwise `H¹ → L²` contribution
