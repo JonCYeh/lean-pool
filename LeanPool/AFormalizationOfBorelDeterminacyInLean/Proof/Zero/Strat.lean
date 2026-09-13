@@ -245,7 +245,7 @@ lemma lost_of_body_lost (hy : ⟨y.val, body_mono (subtree_sub _) y.prop⟩ ∉ 
     ← (isClosed_image_payoff.mp hyp.closed).closure_eq,
     mem_closure_iff_nhds_basis (hasBasis_principalOpen y.val)] at hy
   simp only [Set.mem_image, Subtype.exists, exists_and_right, exists_eq_right,
-    not_forall, Classical.not_imp, not_exists, not_and, forall_exists_index] at hy
+    not_forall, not_exists, not_and, forall_exists_index] at hy
   obtain ⟨x, hx1, hx2⟩ := hy; use x.length
   apply TreeLift.lost_of_lost'; unfold Lift.Lost'
   rw [wonPosition_iff_disjoint, ← Set.subset_empty_iff]
