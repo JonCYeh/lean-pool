@@ -198,8 +198,11 @@ private def noLanguage (bits : List Bool) : Bool :=
         hasIntegerTarget record ∧ gapNO400 record)
     (Classical.propDecidable _)
 
-private structure PromiseProblem where
+/-- The disjoint yes and no languages used by the canonical hardness statements. -/
+structure PromiseProblem where
+  /-- Encodings satisfying the promise's positive case. -/
   yes : BitLanguage
+  /-- Encodings satisfying the promise's negative case. -/
   no : BitLanguage
   disjoint : ∀ bits, yes bits → no bits → False
 
@@ -544,7 +547,9 @@ noncomputable def finitePGapCVPPromise (p : ℚ) (hp : 1 ≤ p) : PromiseProblem
       exact_mod_cast well.2.2
     nlinarith [far vector]
 
-private structure PromiseReduction (language : BitLanguage) (problem : PromiseProblem) where
+/-- A polynomial-time reduction sending members to yes-instances and nonmembers to no-instances. -/
+structure PromiseReduction (language : BitLanguage) (problem : PromiseProblem) where
+  /-- The transformation of encoded instances. -/
   map : List Bool → List Bool
   polynomial_time : Nonempty
     (BitTM map)

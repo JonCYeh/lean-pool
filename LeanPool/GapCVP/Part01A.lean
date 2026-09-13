@@ -747,7 +747,8 @@ structure PolynomialReduction (A B : BitLanguage) where
     (BitTM map)
   correct : ∀ x, A x ↔ B (map x)
 
-private noncomputable def PolynomialTimeClosedUnderComposition : Bool :=
+/-- Polynomial-time binary-string functions remain polynomial-time under composition. -/
+noncomputable def PolynomialTimeClosedUnderComposition : Bool :=
   @decide (
   ∀ (f g : List Bool → List Bool),
     Nonempty (BitTM f) →
