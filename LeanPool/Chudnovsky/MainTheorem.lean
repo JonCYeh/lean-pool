@@ -90,9 +90,8 @@ private theorem factorial_ratio_succ (n : ℕ) :
     _ = (6 * n)! * ((3 * (n + 1))! * ((n + 1)!) ^ 3 * 1728 ^ (n + 1)) := by
         rw [e3, e1, pow_succ]; ring
 
-/-- The sharp factorial bound `(6n)!/((3n)!(n!)³) ≤ 1728ⁿ`, obtained by iterating
-`factorial_ratio_succ`. -/
-private theorem factorial_ratio_le (n : ℕ) :
+/-- The factorial quotient `(6n)!/((3n)!(n!)³)` is bounded by `1728ⁿ`. -/
+theorem factorial_ratio_le (n : ℕ) :
     (6 * n)! ≤ 1728 ^ n * ((3 * n)! * (n !) ^ 3) := by
   induction n with
   | zero => simp
