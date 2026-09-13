@@ -55,8 +55,9 @@ private theorem terminalWordPoints_top_three :
   · refine ⟨(0, 3), by decide, ?_⟩
     norm_num [terminalWordPoints, sqDist]
   · rintro ⟨i, j⟩ hij
+    rw [mem_unorderedPairList_iff] at hij
     fin_cases i <;> fin_cases j
-    all_goals norm_num [unorderedPairList, terminalWordPoints, sqDist] at *
+    all_goals norm_num [terminalWordPoints, sqDist] at *
 
 private def terminalWordGeometry :
     Row1B32WordRealization terminalWordPoints
@@ -165,8 +166,9 @@ private theorem sharedTipPoints_top_three :
   · refine ⟨(1, 4), by decide, ?_⟩
     norm_num [sharedTipPoints, sqDist]
   · rintro ⟨i, j⟩ hij
+    rw [mem_unorderedPairList_iff] at hij
     fin_cases i <;> fin_cases j
-    all_goals norm_num [unorderedPairList, sharedTipPoints, sqDist] at *
+    all_goals norm_num [sharedTipPoints, sqDist] at *
 
 private def onePenultimateGeometry :
     OnePenultimateWordGeometry sharedTipPoints 2112500 1748500 1732250 := {
@@ -398,8 +400,9 @@ private theorem fourEdgePoints_top_three :
   · refine ⟨(0, 3), by decide, ?_⟩
     norm_num [fourEdgePoints, sqDist]
   · rintro ⟨i, j⟩ hij
+    rw [mem_unorderedPairList_iff] at hij
     fin_cases i <;> fin_cases j
-    all_goals norm_num [unorderedPairList, fourEdgePoints, sqDist] at *
+    all_goals norm_num [fourEdgePoints, sqDist] at *
 
 private def fourEdgeFirstLeft :
     FourEdgeBranchGeometry fourEdgePoints 2112500 1 0 4 := {
