@@ -64,7 +64,10 @@ lemma winningPrefix_of_residual {x y : List A}
   obtain ⟨n, hW⟩ := hW; use x.length + n
   convert hW using 1
   · simp_rw [List.take_length_add_append, residual_append]
-  · synthIsPosition
+  · rw [List.take_length_add_append, Player.residual_residual, ← List.append_assoc,
+      ← Player.residual_residual]
+    have hcancel : p.residual (x ++ x) = p := Player.residual_append_both x p (y := [])
+    rw [hcancel]
 section «Section2»
 variable {x : List A} (h : WinningPrefix G p x)
 
