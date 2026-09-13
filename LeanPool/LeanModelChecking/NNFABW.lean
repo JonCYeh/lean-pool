@@ -926,26 +926,34 @@ lemma preserves_path
   by_cases H_spine : op = (fun _ => ⟨Φ, le_refl _⟩); { left; exact H_spine }; right
   obtain ⟨bp, H_bp⟩ : ∃ i, op i ≠ ⟨Φ, le_refl _⟩ := by grind
   obtain ⟨n, op_path⟩ := op_path
-  have bp_branch : (op bp).val ≤ φ := by
-    simp only [dag, base, E] at op_path
-    grind
+  have branch_bounds {j : ℕ} (hj : op j ≠ ⟨Φ, le_refl _⟩) :
+      (op j).val ≤ φ ∧ (op (j + 1)).val ≤ φ := by
+    rcases op_path j with ⟨hroot, _⟩ | ⟨_, hp, hp', _⟩
+    · exact (hj hroot).elim
+    · exact ⟨hp, hp'⟩
+  have bp_branch := (branch_bounds H_bp).1
   have pres_branch : ∀ {i}, (op i).val ≤ φ → ∀ j ≥ i, (op j).val ≤ φ := by
-    simp only [dag, base, E, Set.mem_union] at op_path
-    intros _ _ j
-    induction j
-    · grind
-    next n _ => have := op_path n; grind
+    intro i hi j hij
+    induction hij with
+    | refl => exact hi
+    | @step j _ ih =>
+      apply (branch_bounds ?_).2
+      intro hroot
+      exact ltφ.not_ge (by simpa only [hroot] using ih)
   let ι := fun i => mini G (⟨(op (bp + i)).val, (pres_branch bp_branch _ (by omega))⟩, n + (bp + i))
   have ι_antitone : Antitone ι := by
     apply antitone_nat_of_succ_le
     intros n
     specialize op_path (bp + n)
     exact mini_not_increasing ltφ _ _ _ _ op_path
-  obtain ⟨sp, i, hi, _⟩ := antitone_nat_eventually_constant ι_antitone
-  simp only [dag, base, E] at op_path
+  obtain ⟨sp, i, hi, hi₀⟩ := antitone_nat_eventually_constant ι_antitone
   have : i ≤ n + bp := by
-    have : ι 0 ≤ n + bp := by apply mini_le G _ _; grind
-    grind
+    apply hi₀.trans
+    apply mini_le G _ _
+    rcases op_path bp with ⟨hroot, _⟩ | ⟨_, _, _, hV, _⟩
+    · exact (H_bp hroot).elim
+    · exact hV
+  simp only [dag, base, E] at op_path
   exists i, bp + sp
   simp only [DAG.path, Functor.map, Set.mem_image, Prod.mk.injEq, Prod.exists, Subtype.exists,
     exists_and_right, exists_eq_right_right, exists_eq_right]
@@ -954,7 +962,9 @@ lemma preserves_path
   intros l
   specialize op_path (bp + sp + l)
   have not_root : op (bp + sp + l) ≠ ⟨Φ, le_refl _⟩ := by
-    grind [pres_branch bp_branch (bp + sp + l) (by omega)]
+    intro hroot
+    exact ltφ.not_ge (by
+      simpa only [hroot] using pres_branch bp_branch (bp + sp + l) (by omega))
   simp only [ne_eq, exists_prop, exists_and_left, Set.mem_union, Set.mem_ofPred_eq, not_root,
     false_and, not_false_eq_true, true_and, false_or] at op_path
   rcases op_path with ⟨p1, _, p2, he⟩
