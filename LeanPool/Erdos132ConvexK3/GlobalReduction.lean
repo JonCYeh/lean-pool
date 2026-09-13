@@ -368,6 +368,40 @@ theorem right_cover_top_three_adjacent
     TopThreeAdjacent P d₁ d₂ d₃ i (cyclicAdvance j 1) :=
   top_three_adjacent_of_strictly_longer hClasses hAdj hCover
 
+/-- Three increasing values drawn from three ordered ranks exhaust the ranks in order. -/
+theorem strict_three_rank_chain
+    {K : Type*} [LinearOrder K] {x y z d₁ d₂ d₃ : K}
+    (hd₃d₂ : d₃ < d₂) (hd₂d₁ : d₂ < d₁)
+    (hx : x = d₁ ∨ x = d₂ ∨ x = d₃)
+    (hy : y = d₁ ∨ y = d₂ ∨ y = d₃)
+    (hz : z = d₁ ∨ z = d₂ ∨ z = d₃)
+    (hxy : x < y) (hyz : y < z) : x = d₃ ∧ y = d₂ ∧ z = d₁ := by
+  have hxLower : d₃ ≤ x := by
+    rcases hx with rfl | rfl | rfl
+    · exact (hd₃d₂.trans hd₂d₁).le
+    · exact hd₃d₂.le
+    · exact le_rfl
+  have hzUpper : z ≤ d₁ := by
+    rcases hz with rfl | rfl | rfl
+    · exact le_rfl
+    · exact hd₂d₁.le
+    · exact (hd₃d₂.trans hd₂d₁).le
+  have hyEq : y = d₂ := by
+    rcases hy with rfl | hy | rfl
+    · exact (hyz.not_ge hzUpper).elim
+    · exact hy
+    · exact (hxy.not_ge hxLower).elim
+  subst y
+  refine ⟨?_, rfl, ?_⟩
+  · rcases hx with rfl | rfl | hx
+    · exact (hd₂d₁.asymm hxy).elim
+    · exact (lt_irrefl _ hxy).elim
+    · exact hx
+  · rcases hz with hz | rfl | rfl
+    · exact hz
+    · exact (lt_irrefl _ hyz).elim
+    · exact (hd₃d₂.asymm hyz).elim
+
 /-- Two strict cover moves among exactly three distance ranks must end in
 the largest class. -/
 theorem two_covers_end_at_d₁
@@ -380,10 +414,8 @@ theorem two_covers_end_at_d₁
     (hgrow₁ : sqDist (P i₀) (P j₀) < sqDist (P i₁) (P j₁))
     (hgrow₂ : sqDist (P i₁) (P j₁) < sqDist (P i₂) (P j₂)) :
     sqDist (P i₂) (P j₂) = d₁ := by
-  rcases hClasses with ⟨hd₃d₂, hd₂d₁, _, _, _, _⟩
-  rcases h₀.2 with h₀ | h₀ | h₀ <;>
-    rcases h₁.2 with h₁ | h₁ | h₁ <;>
-      rcases h₂.2 with h₂ | h₂ | h₂ <;> linarith
+  exact (strict_three_rank_chain hClasses.1 hClasses.2.1
+    h₀.2 h₁.2 h₂.2 hgrow₁ hgrow₂).2.2
 
 /-- A diameter-class edge is terminal for the cover process because every
 interpoint squared distance is at most `d₁`. -/

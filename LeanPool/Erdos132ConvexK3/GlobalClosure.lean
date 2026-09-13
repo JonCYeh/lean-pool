@@ -1390,39 +1390,6 @@ theorem fourEdgeEndpointGeometry_of_cyclic_offsets
       diameterEdge := by simpa [T, S] using hts }
     arcPartition := hPartition }, rfl⟩
 
-private theorem strict_three_rank_chain
-    {K : Type*} [LinearOrder K] {x y z d₁ d₂ d₃ : K}
-    (hd₃d₂ : d₃ < d₂) (hd₂d₁ : d₂ < d₁)
-    (hx : x = d₁ ∨ x = d₂ ∨ x = d₃)
-    (hy : y = d₁ ∨ y = d₂ ∨ y = d₃)
-    (hz : z = d₁ ∨ z = d₂ ∨ z = d₃)
-    (hxy : x < y) (hyz : y < z) : x = d₃ ∧ y = d₂ ∧ z = d₁ := by
-  have hxLower : d₃ ≤ x := by
-    rcases hx with rfl | rfl | rfl
-    · exact (hd₃d₂.trans hd₂d₁).le
-    · exact hd₃d₂.le
-    · exact le_rfl
-  have hzUpper : z ≤ d₁ := by
-    rcases hz with rfl | rfl | rfl
-    · exact le_rfl
-    · exact hd₂d₁.le
-    · exact (hd₃d₂.trans hd₂d₁).le
-  have hyEq : y = d₂ := by
-    rcases hy with rfl | hy | rfl
-    · exact (hyz.not_ge hzUpper).elim
-    · exact hy
-    · exact (hxy.not_ge hxLower).elim
-  subst y
-  refine ⟨?_, rfl, ?_⟩
-  · rcases hx with rfl | rfl | hx
-    · exact (hd₂d₁.asymm hxy).elim
-    · exact (lt_irrefl _ hxy).elim
-    · exact hx
-  · rcases hz with hz | rfl | rfl
-    · exact hz
-    · exact (lt_irrefl _ hyz).elim
-    · exact (hd₃d₂.asymm hyz).elim
-
 namespace K3CoverSequence
 
 /-- Any actual two-cover witness exhausts the three strict distance ranks,
