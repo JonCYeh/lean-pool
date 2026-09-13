@@ -40,7 +40,7 @@ instance : Fintype ExceptionalRow where
   elems := {.row1, .row2, .row3, .row4, .row5}
   complete := by
     intro row
-    cases row <;> simp
+    cases row <;> decide +kernel
 
 /-- The thirteen and only thirteen row/cover words in draft Section 7. -/
 inductive ExceptionalCoverWord where
@@ -66,7 +66,7 @@ instance : Fintype ExceptionalCoverWord where
   }
   complete := by
     intro word
-    cases word <;> simp
+    cases word <;> decide +kernel
 
 /-- The four local kernels named in the Section 7 destination column. -/
 inductive WordClosureRoute where
@@ -80,7 +80,7 @@ instance : Fintype WordClosureRoute where
   elems := {.fullTwoRung, .antiSaturation, .terminalCage, .fourEdgeCage}
   complete := by
     intro route
-    cases route <;> simp
+    cases route <;> decide +kernel
 
 /-- Row projection for the thirteen-word audit. -/
 def ExceptionalCoverWord.row : ExceptionalCoverWord → ExceptionalRow
