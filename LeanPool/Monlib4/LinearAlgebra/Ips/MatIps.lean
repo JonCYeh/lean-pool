@@ -1282,14 +1282,9 @@ theorem LinearMap.pi_mul'_comp_mul'_adjoint [hψ : ∀ i, (ψ i).IsFaithfulPosMa
 lemma Matrix.smul_inj_mul_one {n : Type*} [DecidableEq n]
   [Nonempty n] (x y : ℂ) :
   x • (1 : Matrix n n ℂ) = y • (1 : Matrix n n ℂ) ↔ x = y := by
-  simp_rw [← Matrix.ext_iff, Matrix.smul_apply, Matrix.one_apply, smul_ite,
-    smul_zero, smul_eq_mul, mul_one]
-  constructor
-  · intro h
-    let i : n := Nonempty.some ‹_›
-    specialize h i i
-    simp_all
-  · simp_all
+  rw [smul_one_eq_diagonal, smul_one_eq_diagonal]
+  exact (diagonal_injective.comp Function.const_injective).eq_iff
+
 
 open scoped Classical in
 omit [DecidableEq k] in
