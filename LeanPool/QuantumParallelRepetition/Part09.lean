@@ -5336,10 +5336,7 @@ theorem unconditionalMatchedVerifierTensor_sub_right
     unconditionalMatchedVerifierTensor x work -
       unconditionalMatchedVerifierTensor y work =
         unconditionalMatchedVerifierTensor (x - y) work := by
-  ext q
-  change x q.1 * work q.2 - y q.1 * work q.2 =
-    (x q.1 - y q.1) * work q.2
-  ring
+  exact unconditionalSelectedCopy_tensor_sub x y work
 
 theorem
     unconditionalWeightedClippedConjugateUnitSource_distance_sq_le

@@ -6482,24 +6482,8 @@ private def exactReverseBobActualMarkedEntropyScore
     (seed : ExactRemainingSeed D)
     (marker : Fin side.card)
     (outcome : ExactOutcome X Y A B n) : ℝ :=
-  let target :=
-    exactReverseBobMaskedOutcomeContext
-      G n S D side default marker
-      (exactReverseBobContextAt side seed)
-      outcome
-  finiteRelativeEntropy
-    (jointConditional
-      (groupedMass
-        (exactPrefixNextCode default marker)
-        (exactConditionedReverseBobNextJoint
-          G n S D remaining side))
-      target)
-    (jointConditional
-      (groupedMass
-        (exactPrefixNextCode default marker)
-        (exactConditionedReverseBobNextPrior
-          G n S D remaining side))
-      target)
+  exactReverseBobContextMarkedEntropyScore G n S D remaining default side
+    (exactReverseBobContextAt side seed) marker outcome
 
 private theorem exactReverseBobActualMarkedEntropyScore_eq_context
     (G : Game X Y A B) (n : ℕ) (S : Strategy (G.repeat n))
