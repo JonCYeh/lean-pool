@@ -1228,34 +1228,7 @@ private theorem source_both_transported_generator_boundary_density_tendsto_zero
               C : ℝ) := by
       exact_mod_cast hnat
     rw [← hreal, Finset.sum_div]
-  rw [show
-    (fun n =>
-      (∑ C ∈ (Q n).parts,
-        (boundary
-          (fun i : ↥S =>
-            (A.model n).action
-                (SourceBothCompressionNormalization.sourceCompressionTable j) *
-              (A.model n).action
-                (SourceBothCompressionNormalization.sourceAlphaElement
-                  (i : prefixElementaryGroup
-                    alphaPrefixCode)) *
-              ((A.model n).action
-                (SourceBothCompressionNormalization.sourceCompressionTable j))⁻¹)
-          C : ℝ)) / (A.model n).size) =
-      (fun n =>
-        ∑ i : ↥S,
-          ((partitionWordCrossing (Q n)
-            ((A.model n).action
-                (SourceBothCompressionNormalization.sourceCompressionTable j) *
-              (A.model n).action
-                (SourceBothCompressionNormalization.sourceAlphaElement
-                  (i : prefixElementaryGroup
-                    alphaPrefixCode)) *
-              ((A.model n).action
-                (SourceBothCompressionNormalization.sourceCompressionTable j))⁻¹)).card
-                  : ℝ) /
-                (A.model n).size) from funext hidentity]
-  exact hsum
+  simpa only [hidentity] using hsum
 
 private theorem exists_source_both_common_slow_overlap_scales
     (A : SoficApproximation

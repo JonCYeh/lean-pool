@@ -2399,29 +2399,7 @@ section FiniteSubgroupAveraging
 variable {G : Type*} {H : Type*} [Group G]
   [NormedAddCommGroup H] [InnerProductSpace ℂ H]
 
-private def finiteUnitarySubgroupAverage
-    (π : UnitaryRepresentation G H)
-    (K : Subgroup G) [Fintype K] (x : H) : H :=
-  (Fintype.card K : ℂ)⁻¹ • ∑ k : K, π (k : G) x
-
-private theorem finiteUnitarySubgroupAverage_fixed
-    (π : UnitaryRepresentation G H)
-    (K : Subgroup G) [Fintype K] (x : H) (g : K) :
-    π (g : G) (finiteUnitarySubgroupAverage π K x) =
-      finiteUnitarySubgroupAverage π K x := by
-  classical
-  unfold finiteUnitarySubgroupAverage
-  rw [map_smul, map_sum]
-  congr 1
-  calc
-    (∑ k : K, π (g : G) (π (k : G) x)) =
-        ∑ k : K, π ((g * k : K) : G) x := by
-          apply Finset.sum_congr rfl
-          intro k _
-          simp only [Subgroup.coe_mul, map_mul, LinearIsometryEquiv.coe_mul, Function.comp_apply]
-    _ = ∑ k : K, π (k : G) x :=
-      Function.Bijective.sum_comp (Group.mulLeft_bijective g)
-        (fun k : K => π (k : G) x)
+open ErshovJaikinFiniteSpectral (finiteUnitarySubgroupAverage finiteUnitarySubgroupAverage_fixed)
 
 private theorem inner_finiteUnitarySubgroupAverage_of_fixed_left
     (π : UnitaryRepresentation G H)
