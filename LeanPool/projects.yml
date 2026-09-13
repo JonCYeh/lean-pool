@@ -8122,6 +8122,249 @@ projects:
       - pseudorandomness
     msc:
       - "05C70"
+  - slug: non-sofic-group
+    title: Existence of a finitely presented non-sofic group
+    summary: >-
+      Constructs a finitely presented group that is not sofic, resolving the
+      question whether every group admits arbitrarily accurate finite
+      permutation approximations. The development combines an explicit
+      elementary group with property T, a finite-table construction of a
+      finitely presented group, finite-model expansion, and a local obstruction
+      to sofic approximation.
+    branch: geometric and combinatorial group theory
+    entry_module: LeanPool.NonSoficGroup
+    authors:
+      - OpenAI
+      - Dean Cureton
+    source:
+      title: Ten Advances in Mathematics and Theoretical Computer Science
+      authors:
+        - OpenAI
+      url: https://github.com/openai/ten-proofs
+      github_repo: openai/ten-proofs
+      commit: 94bc0feb6a9ff12c7d31d6de640a725c9d43d2b6
+    license: Apache-2.0
+    status: verified
+    provenance: mix
+    main_declarations:
+      - SoficGroups.exists_finitelyPresented_nonsofic_group
+    main_results:
+      - declaration: SoficGroups.exists_finitelyPresented_nonsofic_group
+        informal: >-
+          There exists a group admitting a finite presentation but no sofic
+          approximation.
+    tags:
+      - group-theory
+      - sofic-groups
+      - property-t
+      - finite-approximations
+    msc:
+      - "20F65"
+      - "20E22"
+  - slug: infinite-connes-rigidity
+    title: Infinite counterexamples to Connes's rigidity conjecture
+    summary: >-
+      Constructs one finitely generated property-(T) ICC group and an infinite
+      family of finitely generated property-(T) ICC groups that are pairwise
+      nonisomorphic and are each nonisomorphic to the first group, while all of
+      their tracial group von Neumann algebras are normally star-isomorphic.
+      This unconditional infinite-family result is independent of the pooled
+      conditional two-group Connes-rigidity formalization.
+    branch: operator algebras and geometric group theory
+    entry_module: LeanPool.InfiniteConnesRigidity
+    authors:
+      - OpenAI
+      - Dean Cureton
+    source:
+      title: Ten advances in mathematics and theoretical computer science
+      authors:
+        - OpenAI
+      url: https://github.com/openai/ten-proofs
+      github_repo: openai/ten-proofs
+      commit: 94bc0feb6a9ff12c7d31d6de640a725c9d43d2b6
+    license: Apache-2.0
+    status: verified
+    provenance: mix
+    main_declarations:
+      - ConnesRigidity.infiniteConnesRigidity
+    main_results:
+      - declaration: ConnesRigidity.infiniteConnesRigidity
+        informal: >-
+          Registry-friendly alias of the exact canonical infinite-family
+          Connes-rigidity counterexample theorem below.
+      - declaration: ConnesRigidity.exists_infinite_pairwise_nonisomorphic_propertyT_icc_groups_with_isomorphic_factors
+        informal: >-
+          There exist a finitely generated property-(T) ICC group and an
+          infinite sequence of finitely generated property-(T) ICC groups such
+          that all their tracial group von Neumann algebras are normally
+          star-isomorphic, although the sequence is pairwise nonisomorphic and
+          none of its groups is isomorphic to the distinguished group.
+    tags:
+      - operator-algebras
+      - von-neumann-algebras
+      - property-t
+      - group-theory
+      - connes-rigidity
+    msc:
+      - "46L10"
+      - "20F65"
+      - "22D10"
+  - slug: metric-codes
+    title: Improved asymptotic bounds for binary and spherical codes
+    summary: >-
+      Formalizes asymptotic coding bounds obtained from multilevel harmonic
+      analysis, branching rules, and spectral decompositions. The development
+      proves a binary-code exponent strictly below the MRRW rate, constructs a
+      strict hierarchy of spherical-code bounds, and derives the published
+      0.39661 asymptotic kissing-number exponent. This import incorporates
+      substantial proof and performance optimizations by Dean Cureton.
+    branch: coding theory and discrete geometry
+    entry_module: LeanPool.MetricCodes
+    authors:
+      - OpenAI
+      - Dean Cureton
+    source:
+      title: Ten Advances in Mathematics and Theoretical Computer Science
+      authors:
+        - OpenAI
+      url: https://github.com/openai/ten-proofs/tree/94bc0feb6a9ff12c7d31d6de640a725c9d43d2b6
+      github_repo: openai/ten-proofs
+      commit: 94bc0feb6a9ff12c7d31d6de640a725c9d43d2b6
+    license: Apache-2.0
+    status: verified
+    provenance: mix
+    main_declarations:
+      - MetricCodes.Johnson.main_binary_theorem
+    main_results:
+      - declaration: MetricCodes.Johnson.main_binary_theorem
+        informal: >-
+          For every relative distance strictly between zero and one half, the
+          combined variational upper bound on the asymptotic binary-code rate is
+          valid and is strictly smaller than the MRRW rate.
+      - declaration: MetricCodes.Spherical.HigherHierarchy.main_general
+        informal: >-
+          Every feasible finite interlacing certificate gives an eventual
+          exponential upper bound for spherical codes, while the spherical-code
+          rate is bounded by the closed hierarchy's variational rate.
+      - declaration: MetricCodes.Spherical.HigherHierarchy.strict_hierarchy
+        informal: >-
+          At every angle parameter strictly between zero and one, successive
+          levels of both the global and localized hierarchies improve strictly,
+          with the localized hierarchy also strictly improving the row and
+          classical bounds.
+      - declaration: MetricCodes.Spherical.HigherHierarchy.NumericalMaximum.eventually_kissingNumber_lt_published
+        informal: >-
+          In all sufficiently large dimensions, the kissing number is at most
+          2 raised to 0.39661 times the dimension.
+    tags:
+      - coding-theory
+      - spherical-codes
+      - kissing-number
+      - harmonic-analysis
+      - asymptotic-bounds
+    msc:
+      - "94B65"
+      - "52C17"
+      - "41A60"
+  - slug: quantum-parallel-repetition
+    title: Quantum parallel repetition
+    summary: >-
+      Proves a quantitative parallel-repetition theorem for finite two-player
+      quantum games: whenever the entangled value is below one, the entangled
+      values of parallel repetitions decay exponentially, with an explicit
+      universal exponent in the game gap and answer-alphabet sizes.
+    branch: quantum information theory
+    entry_module: LeanPool.QuantumParallelRepetition
+    authors:
+      - OpenAI
+      - Dean Cureton
+    source:
+      title: Ten Advances in Mathematics and Theoretical Computer Science
+      authors:
+        - OpenAI
+      url: https://github.com/openai/ten-proofs
+      github_repo: openai/ten-proofs
+      commit: 94bc0feb6a9ff12c7d31d6de640a725c9d43d2b6
+    license: Apache-2.0
+    status: verified
+    provenance: mix
+    main_declarations:
+      - QuantumParallelRepetition.distributionUniformExponential
+    main_results:
+      - declaration: QuantumParallelRepetition.distributionUniformExponential
+        informal: >-
+          There is a universal positive constant giving an explicit exponential
+          upper bound on the repeated entangled value of every finite game with
+          positive gap and nonempty answer alphabets.
+      - declaration: QuantumParallelRepetition.standardQuantumParallelRepetition
+        informal: >-
+          Every finite two-player game whose entangled value is below one has
+          exponentially decaying entangled value under parallel repetition.
+    tags:
+      - quantum-information
+      - nonlocal-games
+      - parallel-repetition
+      - theoretical-computer-science
+    msc:
+      - "81P68"
+      - "68Q12"
+  - slug: gap-cvp
+    title: Polynomial-factor hardness of the closest vector problem
+    summary: >-
+      Formalizes polynomial-factor NP-hardness of the closest vector problem
+      through an explicit reduction from 3-SAT. The development also derives
+      NP-hardness of binary nearest codeword, binary syndrome decoding, and
+      finite p-norm variants of GapCVP. It includes machine-level polynomial-time
+      bounds, binary encodings, affine systems, Reed--Solomon-style interpolation,
+      and the lattice and coding-theory reductions needed by the final results.
+    branch: computational complexity and lattice problems
+    entry_module: LeanPool.GapCVP
+    authors:
+      - OpenAI
+      - Dean Cureton
+    source:
+      title: Ten Advances in Mathematics and Theoretical Computer Science
+      authors:
+        - OpenAI
+      url: https://github.com/openai/ten-proofs
+      github_repo: openai/ten-proofs
+      commit: 94bc0feb6a9ff12c7d31d6de640a725c9d43d2b6
+    license: Apache-2.0
+    status: verified
+    provenance: mix
+    main_declarations:
+      - GapCVP.Comparator.gapCVP400IsNPHard
+    main_results:
+      - declaration: GapCVP.Comparator.gapCVP400IsNPHard
+        informal: >-
+          GapCVP in the Euclidean norm with approximation factor n^(1/400),
+          where n is the lattice dimension, is NP-hard as a promise problem:
+          every NP language reduces in polynomial time to the promise problem
+          on encoded well-formed instances (positive dimension, nonsingular
+          integer basis, positive rational radius) with an integer target,
+          whose YES instances have a lattice vector within the radius of the
+          target and whose NO instances have every lattice vector at distance
+          greater than n^(1/400) times the radius.
+      - declaration: GapCVP.Comparator.binaryNearestCodewordIsNPHard
+        informal: >-
+          Binary nearest codeword is NP-hard as a promise problem.
+      - declaration: GapCVP.Comparator.binarySyndromeDecodingIsNPHard
+        informal: >-
+          Binary syndrome decoding is NP-hard as a promise problem.
+      - declaration: GapCVP.Comparator.finitePNormGapCVPIsNPHard
+        informal: >-
+          For every rational p at least one, the finite p-norm version of
+          GapCVP is NP-hard as a promise problem.
+    tags:
+      - computational-complexity
+      - np-hardness
+      - lattice-problems
+      - coding-theory
+    msc:
+      - "68Q17"
+      - "68Q25"
+      - "11H06"
+      - "94B35"
   - slug: hopf-problem
     title: A complex structure on the six-sphere
     summary: >-
