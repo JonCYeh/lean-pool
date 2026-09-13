@@ -1112,19 +1112,17 @@ theorem Qam.Nontracial.mul_comp_mul_adjoint [hφ : φ.IsFaithfulPosMap] :
     withMatrixInner[φ]
     (LinearMap.mul' ℂ ℍ ∘ₗ LinearMap.adjoint (LinearMap.mul' ℂ ℍ) = trace (φ.matrix⁻¹) • 1) := by
   mat_inner_instances φ
-  simp_rw [LinearMap.ext_iff, LinearMap.comp_apply]
-  intro x
-  simp_rw [← Matrix.ext_iff, LinearMap.mul'_adjoint,
-    map_sum, _root_.map_smul, LinearMap.mul'_apply,
-    Matrix.sum_apply, LinearMap.smul_apply, Matrix.smul_apply,
-    smul_eq_mul, Module.End.one_apply, mul_apply, single, of_apply,
-    boole_mul, Finset.mul_sum, mul_ite, MulZeroClass.mul_zero, mul_one, ite_and]
-  intro i j
-  simp only [Finset.sum_ite_irrel, Finset.sum_const_zero, Finset.sum_ite_eq, Finset.sum_ite_eq',
-    Finset.mem_univ, ite_true]
-  simp_rw [← Finset.mul_sum, ← trace_iff φ.matrix⁻¹, mul_comm]
-
-
+  ext x : 1
+  simp only [LinearMap.comp_apply, LinearMap.mul'_adjoint, map_sum, _root_.map_smul,
+    LinearMap.mul'_apply, single_hMul, mul_one, ite_smul, one_smul, zero_smul,
+    smul_ite, smul_zero]
+  simp only [Finset.sum_ite_irrel, Finset.sum_const_zero, Finset.sum_ite_eq,
+    Finset.mem_univ, ite_true, LinearMap.smul_apply, Module.End.one_apply]
+  simp_rw [mul_comm (x _ _), mul_smul, ← Finset.smul_sum, ← Finset.sum_smul]
+  rw [← trace_iff, ← Finset.smul_sum]
+  congr 1
+  simp only [Matrix.smul_single, smul_eq_mul, mul_one]
+  exact Matrix.sum_sum_single x
 
 
 theorem LinearMap.mulLeft_toMatrix (hφ : φ.IsFaithfulPosMap) (x : Matrix n n ℂ) :
