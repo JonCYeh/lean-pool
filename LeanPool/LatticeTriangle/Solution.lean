@@ -60,16 +60,13 @@ lemma truncatedObtuseRegion_subset_box (n : ℕ) (η : ℝ) :
     truncatedObtuseRegion n η ⊆
       (Set.Icc (⌈η * (n : ℝ)⌉ - 1 : ℤ) (⌊(n : ℝ) / 2 - η * (n : ℝ)⌋ : ℤ)) ×ˢ
       (Set.Icc (⌈η * (n : ℝ)⌉ - 1 : ℤ) (⌊(n : ℝ) / 2 - η * (n : ℝ)⌋ : ℤ)) := by
-  intro ⟨p, q⟩ h
-  simp only [truncatedObtuseRegion, Set.mem_ofPred_eq, Set.mem_prod, Set.mem_Icc] at h ⊢
-  have h₁ : (η * (n : ℝ) : ℝ) ≤ (p : ℝ) := h.1
-  have h₂ : (η * (n : ℝ) : ℝ) ≤ (q : ℝ) := h.2.1
-  have h₃ : (p : ℝ) + (q : ℝ) < (n : ℝ) / 2 := h.2.2.1
-  have hc : ⌈η * (n : ℝ)⌉ ≤ p + 1 ∧ ⌈η * (n : ℝ)⌉ ≤ q + 1 := by
-    constructor <;> · rw [Int.ceil_le]; push_cast; linarith
-  have hp : (p : ℤ) ≤ ⌊(n : ℝ) / 2 - η * (n : ℝ)⌋ := by rw [Int.le_floor]; linarith
-  have hq : (q : ℤ) ≤ ⌊(n : ℝ) / 2 - η * (n : ℝ)⌋ := by rw [Int.le_floor]; linarith
-  exact ⟨⟨by omega, hp⟩, ⟨by omega, hq⟩⟩
+  rintro ⟨p, q⟩ ⟨hp, hq, hpq, _⟩
+  refine ⟨⟨(sub_le_self _ zero_le_one).trans (Int.ceil_le.mpr hp), ?_⟩,
+    ⟨(sub_le_self _ zero_le_one).trans (Int.ceil_le.mpr hq), ?_⟩⟩
+  · apply Int.le_floor.mpr
+    linarith only [hpq, hq]
+  · apply Int.le_floor.mpr
+    linarith only [hpq, hp]
 
 lemma truncatedObtuseRegion_finite (n : ℕ) (η : ℝ) :
     (truncatedObtuseRegion n η).Finite :=
@@ -573,21 +570,11 @@ lemma quadratic_dominates_linear (δ L n B' : ℝ) (hδ : 0 < δ)
     (hn : 0 ≤ n) (hL : δ * n ≤ L) (hB' : 5 * B' ≤ 5 * n)
     (hn_large : 160 / δ ^ 2 ≤ n) :
     δ ^ 2 / 32 * n ^ 2 ≤ L ^ 2 / 16 - 5 * B' := by
-  have hL_sq : δ ^ 2 * n ^ 2 ≤ L ^ 2 := by
-    have h₁ : 0 ≤ δ * n := by positivity
-    have h₄ : (δ * n) ^ 2 ≤ L ^ 2 := by nlinarith [sq_nonneg (L - δ * n)]
-    linarith
-  have h_nδ_ge : n * δ ^ 2 ≥ 160 := by
-    have h₂ : 0 < δ ^ 2 := by positivity
-    have h₃ : 160 ≤ n * δ ^ 2 := by
-      calc
-        160 = (160 / δ ^ 2) * δ ^ 2 := by field_simp [h₂.ne']
-        _ ≤ n * δ ^ 2 := by nlinarith
-    linarith
-  have h_nδ_sq_ge : δ ^ 2 / 32 * n ^ 2 ≥ 5 * n := by
-    have h₇ : n * (n * δ ^ 2) ≥ n * 160 := by nlinarith
-    linarith
-  linarith
+  have hL_sq : (δ * n) ^ 2 ≤ L ^ 2 :=
+    pow_le_pow_left₀ (mul_nonneg hδ.le hn) hL 2
+  have hnδ : 160 ≤ n * δ ^ 2 := (div_le_iff₀ (sq_pos_of_pos hδ)).mp hn_large
+  have hnδ_sq := mul_le_mul_of_nonneg_left hnδ hn
+  nlinarith only [hL_sq, hnδ_sq, hB']
 
 lemma ceil_eta_n_pos (η : ℝ) (hη_pos : 0 < η) (n : ℕ) (hn : 1 ≤ n) :
     1 ≤ (⌈η * (n : ℝ)⌉ : ℤ) := by
@@ -1281,15 +1268,7 @@ lemma mp_valid (n : ℕ) (hn : 2 ≤ n) (p q : ℤ) (hp : 1 ≤ p) (hq : 1 ≤ q
 lemma mq_valid (n : ℕ) (_hn : 2 ≤ n) (p q : ℤ) (hp : 1 ≤ p) (hq : 1 ≤ q)
     (hpq : (p : ℝ) + (q : ℝ) < (n : ℝ) / 2) :
     1 ≤ (2 * q - 1).toNat ∧ (2 * q - 1).toNat < n := by
-  have hq' : (q : ℤ) ≥ 1 := by exact_mod_cast hq
-  have h₁ : (2 * q - 1 : ℤ) ≥ 1 := by linarith
-  have h₂ : (2 * q - 1 : ℤ) < (n : ℤ) := by
-    have h₄ : (q : ℝ) < (n : ℝ) / 2 := by
-      have : (p : ℝ) ≥ 1 := by exact_mod_cast hp
-      linarith
-    have : ((2 * q - 1 : ℤ) : ℝ) < (n : ℝ) := by push_cast; linarith
-    exact_mod_cast this
-  exact ⟨by omega, by omega⟩
+  exact mp_valid n _hn q p hq hp (by rwa [add_comm])
 
 lemma zero_zero_term_eq_main
     (n : ℕ) [NeZero n] (hn : 2 ≤ n)
@@ -1303,11 +1282,9 @@ lemma zero_zero_term_eq_main
   have hmp := mp_valid n hn p q hp hq hpq
   have hmq := mq_valid n hn p q hp hq hpq
   simp only [ZMod.val_zero, Nat.cast_zero, zero_mul, zero_add]
-  rw [ramanujanSum_zero]
-  rw [normalizedDFT_intervalIndicator_zero n _ hmp.1 hmp.2]
-  rw [normalizedDFT_intervalIndicator_zero n _ hmq.1 hmq.2]
-  have hn_ne : (n : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
-  field_simp
+  rw [ramanujanSum_zero, normalizedDFT_intervalIndicator_zero n _ hmp.1 hmp.2,
+    normalizedDFT_intervalIndicator_zero n _ hmq.1 hmq.2,
+    div_mul_div_comm, ← pow_two, div_mul_eq_mul_div]
 
 lemma full_sum_split_zero_nonzero
     (n : ℕ) [NeZero n] (F : ZMod n → ZMod n → ℂ) :
@@ -4762,29 +4739,14 @@ lemma sum_range_le_sum_Icc (n d : ℕ) (hd_pos : 0 < d)
       (1 : ℝ) / (2 * ((d : ℝ) - b + ((j : ℝ) + 1) * d)) ≤
     ∑ j ∈ Finset.Icc 1 (n / (2 * d)),
       (1 : ℝ) / (2 * ((j : ℝ) * (d : ℝ))) := by
-  have h₁ : ∑ j ∈ Finset.range (n / (2 * d)),
-    (1 : ℝ) / (2 * ((d : ℝ) - b + ((j : ℝ) + 1) * d)) = ∑ j ∈ Finset.Icc 1 (n / (2 * d)),
-      (1 : ℝ) / (2 * ((d : ℝ) - b + ((j : ℝ) - 1 + 1) * d)) := by
-    apply Eq.symm
-    apply Finset.sum_bij' (fun j _ => j - 1) (fun j _ => j + 1) <;>
-      simp_all [Finset.mem_Icc, Finset.mem_range]
-    omega
-  rw [h₁]
-  have h₃ : ∑ j ∈ Finset.Icc 1 (n / (2 * d)),
-    (1 : ℝ) / (2 * ((d : ℝ) - b + ((j : ℝ) - 1 + 1) * d)) ≤ ∑ j ∈ Finset.Icc 1 (n / (2 * d)),
-      (1 : ℝ) / (2 * ((j : ℝ) * (d : ℝ))) := by
-    apply Finset.sum_le_sum
-    intro j hj
-    have h₄ : (j : ℕ) ∈ Finset.Icc 1 (n / (2 * d)) := hj
-    have h₅ : 1 ≤ j := by
-      simp_all
-    have h₉ : (d : ℝ) - b ≥ 0 := by
-      have h₁₀ : (d : ℕ) ≥ b := by omega
-      simp_all
-    apply one_div_le_one_div_of_le
-    · positivity
-    · nlinarith
-  linarith
+  rw [← Finset.Ico_succ_right_eq_Icc, Finset.sum_Ico_eq_sum_range]
+  simp only [Nat.cast_add, Nat.cast_one]
+  apply Finset.sum_le_sum
+  intro j _
+  apply one_div_le_one_div_of_le
+  · positivity
+  · have hbd : (b : ℝ) ≤ d := by exact_mod_cast hb_lt.le
+    nlinarith only [hbd]
 
 lemma tail_sum_le (n d : ℕ) (hn : 2 ≤ n) (hd_pos : 0 < d) (hd_le : d ≤ n)
     (b : ℕ) (hb_pos : 1 ≤ b) (hb_lt : b < d) :
@@ -6840,19 +6802,11 @@ lemma totient_sq_lower_bound (n : ℕ) (hn : 1 ≤ n) : n ≤ 2 * n.totient ^ 2 
 lemma totient_tendsto_atTop :
     ∀ K : ℕ, ∃ N : ℕ, ∀ n : ℕ, N ≤ n → K ≤ Nat.totient n := by
   intro K
-  use 2 * K ^ 2 + 1
-  intro n hn
-  by_contra h
-  push Not at h
-  have hn1 : 1 ≤ n := by omega
-  have hbound := totient_sq_lower_bound n hn1
-  have hlt : n.totient ≤ K - 1 := by omega
-  have hsq : n.totient ^ 2 ≤ (K - 1) ^ 2 := Nat.pow_le_pow_left hlt 2
-  have : (K - 1) ^ 2 < K ^ 2 := by
-    rcases K with _ | K
-    · omega
-    · simp; nlinarith [Nat.pos_of_ne_zero (by omega : K.succ ≠ 0)]
-  nlinarith
+  refine ⟨2 * K ^ 2 + 1, fun n hn => ?_⟩
+  by_contra! h
+  have hbound := totient_sq_lower_bound n (by omega)
+  have hsq := Nat.pow_le_pow_left h.le 2
+  omega
 
 lemma totient_large_enough (η : ℝ) (hη_pos : 0 < η) :
     ∃ N : ℕ, ∀ n : ℕ, N ≤ n →
