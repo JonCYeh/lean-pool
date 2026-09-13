@@ -370,23 +370,6 @@ theorem memLD_d0_smul (a : ℂ) {g : C0 D' 𝒰} (hg : (d0 D' 𝒰 g).MemLD D) :
   rw [map_smul]
   exact hg.smul a
 
-/-! ### `mlClass` is refinement-stable (§6.9(a), `mlClass_res`) -/
-
-omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
-theorem mlClass_res {𝒰 𝒱 : FinCover (⊤ : Opens X)} (τ : Fin 𝒱.n → Fin 𝒰.n)
-    (hτ : IsRefIdx 𝒰 𝒱 τ) (g : C0 D' 𝒰) (hg : (d0 D' 𝒰 g).MemLD D)
-    (hgr : (d0 D' 𝒱 (resC0 D' τ hτ g)).MemLD D) :
-    mlClass 𝒱 (resC0 D' τ hτ g) hgr = mlClass 𝒰 g hg := by
-  symm
-  change toH1 D 𝒰 (H1Cover.mk D 𝒰 _) = toH1 D 𝒱 (H1Cover.mk D 𝒱 _)
-  rw [← toH1_resH1 D τ hτ, resH1_mk]
-  apply congrArg (toH1 D 𝒱)
-  apply congrArg (H1Cover.mk D 𝒱)
-  apply Subtype.ext
-  change C1.retype (resC1 D' τ hτ (d0 D' 𝒰 g)) _ = _
-  congr 1
-  exact LinearMap.congr_fun (resC1_comp_d0 D' τ hτ) g
-
 variable [T2Space X] [CompactSpace X]
 
 omit [IsManifold 𝓘(ℂ, ℂ) ω X] in

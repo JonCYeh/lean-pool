@@ -107,6 +107,24 @@ theorem H1Incl_mlClass (h : D ≤ D') (g : C0 D' 𝒰) (hg : (d0 D' 𝒰 g).MemL
   exact (H1Incl_toH1 D h 𝒰 _).trans
     ((congrArg (toH1 D' 𝒰) ((h1CoverIncl_mk D h _).trans hz)).trans (toH1 D' 𝒰).map_zero)
 
+/-! ### `mlClass` is refinement-stable (§6.9(a), `mlClass_res`) -/
+
+omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
+/-- Refining the cover and restricting the realizing cochain preserves its Mittag-Leffler class. -/
+theorem mlClass_res {𝒰 𝒱 : FinCover (⊤ : Opens X)} (τ : Fin 𝒱.n → Fin 𝒰.n)
+    (hτ : IsRefIdx 𝒰 𝒱 τ) (g : C0 D' 𝒰) (hg : (d0 D' 𝒰 g).MemLD D)
+    (hgr : (d0 D' 𝒱 (resC0 D' τ hτ g)).MemLD D) :
+    mlClass 𝒱 (resC0 D' τ hτ g) hgr = mlClass 𝒰 g hg := by
+  symm
+  change toH1 D 𝒰 (H1Cover.mk D 𝒰 _) = toH1 D 𝒱 (H1Cover.mk D 𝒱 _)
+  rw [← toH1_resH1 D τ hτ, resH1_mk]
+  apply congrArg (toH1 D 𝒱)
+  apply congrArg (H1Cover.mk D 𝒱)
+  apply Subtype.ext
+  change C1.retype (resC1 D' τ hτ (d0 D' 𝒰 g)) _ = _
+  congr 1
+  exact LinearMap.congr_fun (resC1_comp_d0 D' τ hτ) g
+
 /-! ### The vanishing criterion (§6.9(b), `⇐` half)
 
 The `⇐` half below (a class realized by a global section vanishes) needs no injectivity and is

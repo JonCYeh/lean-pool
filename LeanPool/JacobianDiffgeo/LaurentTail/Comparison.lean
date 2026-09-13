@@ -119,15 +119,7 @@ theorem mlClass_res {D D' : RS.Divisor X} {𝒰 𝒱 : RS.Cech.FinCover (⊤ : O
     (hg : (RS.Cech.d0 D' 𝒰 g).MemLD D)
     (hg' : (RS.Cech.d0 D' 𝒱 (RS.Cech.resC0 D' τ hτ g)).MemLD D) :
     RS.Cech.mlClass 𝒰 g hg = RS.Cech.mlClass 𝒱 (RS.Cech.resC0 D' τ hτ g) hg' := by
-  change RS.Cech.toH1 D 𝒰 (RS.Cech.H1Cover.mk D 𝒰 _) =
-    RS.Cech.toH1 D 𝒱 (RS.Cech.H1Cover.mk D 𝒱 _)
-  rw [← RS.Cech.toH1_resH1 D τ hτ, RS.Cech.resH1_mk]
-  apply congrArg (RS.Cech.toH1 D 𝒱)
-  apply congrArg (RS.Cech.H1Cover.mk D 𝒱)
-  apply Subtype.ext
-  change RS.Cech.C1.retype (RS.Cech.resC1 D' τ hτ (RS.Cech.d0 D' 𝒰 g)) _ = _
-  congr 1
-  exact LinearMap.congr_fun (RS.Cech.resC1_comp_d0 D' τ hτ) g
+  exact (RS.Cech.mlClass_res τ hτ g hg hg').symm
 
 /-! ### The per-point construction: realizing a clean representative -/
 
