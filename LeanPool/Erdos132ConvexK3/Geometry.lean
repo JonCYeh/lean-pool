@@ -448,7 +448,7 @@ theorem same_half_plane_two_circle_unique
   have hdot : dp = dq := by
     dsimp [sqDist, ac, bc, pc, qc, toComplex, vx, vy, px, py, qx, qy, dp, dq]
       at hap hbp ⊢
-    nlinarith
+    linear_combination (hap - hbp) / 2
   have hlagP : dp ^ 2 + cp ^ 2 = (vx ^ 2 + vy ^ 2) * (px ^ 2 + py ^ 2) := by
     dsimp [dp, cp]
     ring
@@ -456,8 +456,8 @@ theorem same_half_plane_two_circle_unique
     dsimp [dq, cq]
     ring
   have hcrossSq : cp ^ 2 = cq ^ 2 := by
-    rw [hdot] at hlagP
-    nlinarith [hlagP, hlagQ, hnorm]
+    rw [hdot, hnorm, ← hlagQ] at hlagP
+    exact add_left_cancel hlagP
   have hcp : 0 < cp := by
     simpa [InLeftOpenHalfPlane, turn, ac, bc, pc, toComplex, vx, vy, px, py, cp]
       using hp
@@ -491,11 +491,7 @@ theorem same_half_plane_two_circle_unique
       rw [hid, hdot, hcross]
       ring
     exact sub_eq_zero.mp ((mul_eq_zero.mp hmul).resolve_left hv.ne')
-  apply Prod.ext
-  · dsimp [px, qx, pc, qc, ac, toComplex] at hx
-    linarith
-  · dsimp [py, qy, pc, qc, ac, toComplex] at hy
-    linarith
+  exact Prod.ext (sub_left_inj.mp hx) (sub_left_inj.mp hy)
 
 /-- A point distinct from both endpoints and contained in both closed disks
 whose common diameter is the endpoint segment has abscissa strictly between
