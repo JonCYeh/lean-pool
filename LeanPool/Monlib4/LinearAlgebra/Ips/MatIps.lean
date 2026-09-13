@@ -570,19 +570,12 @@ protected theorem toMatrixLinEquiv_symm_apply (hφ : φ.IsFaithfulPosMap) (hψ :
         (x (i, j) (k, l) : ℂ) • | hψ.basis (i, j)⟩⟨ hφ.basis (k, l)|)) := by
   rw [IsFaithfulPosMap.toMatrixLinEquiv, LinearMap.ext_iff]
   intro a
-  simp_rw [LinearMap.toMatrix_symm, toLin_apply, mulVec, dotProduct,
+  simp only [LinearMap.toMatrix_symm, toLin_apply, mulVec, dotProduct,
     IsFaithfulPosMap.basis_repr_apply,
     ContinuousLinearMap.toLinearMap_sum,
     LinearMap.sum_apply, ContinuousLinearMap.toLinearMap_smul,
     LinearMap.smul_apply, ContinuousLinearMap.coe_coe, rankOne_apply,
-    IsFaithfulPosMap.basis_apply, Finset.sum_smul]
-  symm
-  repeat'
-    nth_rw 1 [← Finset.sum_product']
-    rw [Finset.univ_product_univ]
-    apply Finset.sum_congr rfl
-    intro ij _
-  simp_rw [smul_smul]
+    Finset.sum_smul, Fintype.sum_prod_type, smul_smul]
 
 
 
