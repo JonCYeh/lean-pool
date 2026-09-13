@@ -263,14 +263,6 @@ omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
     mulH1 f hf (toH1 D 𝒰 c) = toH1 E 𝒰 (mulH1Cover f hf 𝒰 c) :=
   Module.DirectLimit.map_apply_of _ _ c
 
-omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
-@[elab_as_elim] private theorem h1_induction_on_cocycles {D : RS.Divisor X}
-    {motive : H1 D → Prop} (ξ : H1 D)
-    (h : ∀ (𝒰 : FinCover (⊤ : Opens X)) (z : Z1 D 𝒰),
-      motive (toH1 D 𝒰 (H1Cover.mk D 𝒰 z))) : motive ξ := by
-  induction ξ using H1.induction_on with
-  | ih 𝒰 c => exact Submodule.Quotient.induction_on _ c (h 𝒰)
-
 /-! ### Algebra laws for `mulH1` -/
 
 omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
@@ -285,7 +277,7 @@ omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
 theorem mulH1_add {f g : ℳ X} {D E : RS.Divisor X} (hf : MulBound f D E) (hg : MulBound g D E)
     (hfg : MulBound (f + g) D E) (ξ : H1 D) :
     mulH1 (f + g) hfg ξ = mulH1 f hf ξ + mulH1 g hg ξ := by
-  refine h1_induction_on_cocycles ξ (fun 𝒰 z => ?_)
+  refine H1.induction_on_cocycles ξ (fun 𝒰 z => ?_)
   simp only [mulH1_toH1]
   refine (congrArg (toH1 E 𝒰) ?_).trans ((toH1 E 𝒰).map_add _ _)
   simp only [mulH1Cover_mk]
@@ -301,7 +293,7 @@ omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
 theorem mulH1_smul {f : ℳ X} {D E : RS.Divisor X} (a : ℂ) (hf : MulBound f D E)
     (haf : MulBound (a • f) D E) (ξ : H1 D) :
     mulH1 (a • f) haf ξ = a • mulH1 f hf ξ := by
-  refine h1_induction_on_cocycles ξ (fun 𝒰 z => ?_)
+  refine H1.induction_on_cocycles ξ (fun 𝒰 z => ?_)
   simp only [mulH1_toH1]
   refine (congrArg (toH1 E 𝒰) ?_).trans ((toH1 E 𝒰).map_smul a _)
   simp only [mulH1Cover_mk]
@@ -318,7 +310,7 @@ omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
 theorem mulH1_mulH1 {f g : ℳ X} {D D' E : RS.Divisor X} (hf : MulBound f D' E)
     (hg : MulBound g D D') (hfg : MulBound (f * g) D E) (ξ : H1 D) :
     mulH1 f hf (mulH1 g hg ξ) = mulH1 (f * g) hfg ξ := by
-  refine h1_induction_on_cocycles ξ (fun 𝒰 z => ?_)
+  refine H1.induction_on_cocycles ξ (fun 𝒰 z => ?_)
   simp only [mulH1_toH1]
   congr 1
   simp only [mulH1Cover_mk]
@@ -335,7 +327,7 @@ omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
 /-- Multiplication by `1` is the divisor inclusion. -/
 theorem mulH1_one {D E : RS.Divisor X} (h1 : MulBound (1 : ℳ X) D E) (hDE : D ≤ E) (ξ : H1 D) :
     mulH1 (1 : ℳ X) h1 ξ = H1Incl D hDE ξ := by
-  refine h1_induction_on_cocycles ξ (fun 𝒰 z => ?_)
+  refine H1.induction_on_cocycles ξ (fun 𝒰 z => ?_)
   rw [mulH1_toH1, H1Incl_toH1]
   congr 1
   rw [mulH1Cover_mk, h1CoverIncl_mk]
@@ -352,7 +344,7 @@ omit [IsManifold 𝓘(ℂ, ℂ) ω X] in
 theorem mulH1_H1Incl {f : ℳ X} {D D' E : RS.Divisor X} (h : D ≤ D') (hf' : MulBound f D' E)
     (hf : MulBound f D E) (ξ : H1 D) :
     mulH1 f hf' (H1Incl D h ξ) = mulH1 f hf ξ := by
-  refine h1_induction_on_cocycles ξ (fun 𝒰 z => ?_)
+  refine H1.induction_on_cocycles ξ (fun 𝒰 z => ?_)
   rw [H1Incl_toH1]
   simp only [mulH1_toH1]
   congr 1
