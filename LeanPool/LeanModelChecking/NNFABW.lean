@@ -597,73 +597,46 @@ lemma runDag_p_sat
       let (q, i) := v
       ∃ Y, PositiveBool.Sat Y (M.δ q (w i)) ∧
         {(q, i)} ×ˢ Y ⊆ (dag leφ₁ leφ₂ M₁.q₀ M₂.q₀ M.q₀ G₁.toDAG G₂.toDAG).E := by
-    intros v hv
-    simp only [dag, base, Set.mem_union] at hv
-    rcases hv with (hv|hv)|hv
-    · simp only [Set.mem_singleton_iff] at hv; subst hv
-      obtain ⟨Y₁, p_sat₁, p_sub₁⟩ := G₁.p_sat (M₁.q₀, 0) G₁.p_root
-      obtain ⟨Y₂, p_sat₂, p_sub₂⟩ := G₂.p_sat (M₂.q₀, 0) G₂.p_root
-      exists (((Subtype.embedLe leφ₁) '' Y₁) ∪ ((Subtype.embedLe leφ₂) '' Y₂))
-      constructor
-      · grind
-      · rw [Set.subset_def]
-        simp only [
-          Set.prod_union, Set.mem_union, Set.mem_prod, Set.mem_singleton_iff,
-          Set.mem_image, Subtype.exists, dag, base, Set.singleton_union, Prod.mk.eta, Prod.mk.injEq,
-          Functor.map, Prod.exists, Prod.forall, Subtype.forall,
-        ]
-        rintro q pq l q' _
-        rintro (⟨⟨q_eq, rfl⟩, ⟨pq', q'_in_Y₁⟩⟩|⟨⟨q_eq, rfl⟩, ⟨pq', q'_in_Y₂⟩⟩)
-        · left; grind
-        · right; grind
-    · simp only [Set.mem_image, Set.mem_sdiff, Set.mem_singleton_iff, Prod.exists, Prod.mk.injEq,
-      not_and, Subtype.exists] at hv
-      rcases hv with ⟨q, pq, l, ⟨hV₁, not_root⟩, rfl⟩
-      obtain ⟨Y₁, p_sat₁, p_sub₁⟩ := G₁.p_sat _ hV₁
-      exists Subtype.embedLe leφ₁ '' Y₁
-      constructor
-      · rw [delta_eq_1, PositiveBool.mapSubtypeImp_embed leφ₁]
-        exact p_sat₁
-      · rw [Set.subset_def]
-        simp only [dag, base]
-        simp only [Set.mem_image, Subtype.exists, Set.mem_union, Prod.exists, Set.mem_ofPred_eq]
-        grind
-    · simp only [Set.mem_image, Set.mem_sdiff, Set.mem_ofPred_eq, not_and, not_or, Prod.exists,
-      Subtype.exists] at hv
-      rcases hv with ⟨q, pq, l, ⟨hV₂, not_root⟩, rfl⟩
-      by_cases H₁ : (q, l) ∈ (Subtype.val <$> G₁.toDAG).V
-      · simp only [Functor.map, Set.mem_image, Prod.mk.injEq, Prod.exists, exists_eq_right_right,
-        Subtype.exists, exists_and_right, exists_eq_right] at H₁
-        rcases H₁ with ⟨hq1, hV₁⟩
-        obtain ⟨Y₁, p_sat₁, p_sub₁⟩ := G₁.p_sat _ hV₁
-        exists Subtype.embedLe leφ₁ '' Y₁
-        constructor
-        · rw [show Subtype.embedLe leφ₂ ⟨q, pq⟩ = Subtype.embedLe leφ₁ ⟨q, hq1⟩ by rfl,
-            delta_eq_1, PositiveBool.mapSubtypeImp_embed leφ₁]
-          exact p_sat₁
-        · rw [Set.subset_def]
-          simp only [dag, base]
-          intros e he
-          simp only [Set.mem_union, Set.mem_image]
-          left; left
-          simp only [Set.mem_prod, Set.mem_singleton_iff, Set.mem_image, Subtype.exists] at he
-          rcases he with ⟨e1_eq, q', pq', q'_in_Y₁, e2_eq⟩
-          exists ((⟨q, hq1⟩, l), ⟨q', pq'⟩)
-          exists Set.mem_of_subset_of_mem p_sub₁ (by grind)
-          grind
-      · obtain ⟨Y₂, p_sat₂, p_sub₂⟩ := G₂.p_sat _ hV₂
-        exists Subtype.embedLe leφ₂ '' Y₂
-        constructor
-        · rw [delta_eq_2, PositiveBool.mapSubtypeImp_embed leφ₂]
-          exact p_sat₂
-        · rw [Set.subset_def]
-          simp only [dag, base]
-          intros e he
-          simp at he
-          simp only [Set.mem_union, Set.mem_image]
-          left; right
-          simp only [Subtype.exists]
-          grind
+  have first (q : Iic φ₁) (l : ℕ) (hq : (q, l) ∈ G₁.V)
+      (hne : (q, l) ≠ (M₁.q₀, 0)) :
+      ∃ Y, PositiveBool.Sat Y (M.δ (q.embedLe leφ₁) (w l)) ∧
+        {(q.embedLe leφ₁, l)} ×ˢ Y ⊆
+          (dag leφ₁ leφ₂ M₁.q₀ M₂.q₀ M.q₀ G₁.toDAG G₂.toDAG).E := by
+    obtain ⟨Y, hY, hE⟩ := G₁.p_sat _ hq
+    refine ⟨Subtype.embedLe leφ₁ '' Y, ?_, ?_⟩
+    · rwa [delta_eq_1, PositiveBool.mapSubtypeImp_embed leφ₁]
+    · rintro ⟨v, q'⟩ ⟨rfl, y, hy, rfl⟩
+      exact Or.inl (Or.inl ⟨((q, l), y), hE ⟨rfl, hy⟩, by simp [hne]⟩)
+  intro v hv
+  rcases hv with (hv | hv) | hv
+  · rcases hv with rfl
+    obtain ⟨Y₁, hY₁, hE₁⟩ := G₁.p_sat _ G₁.p_root
+    obtain ⟨Y₂, hY₂, hE₂⟩ := G₂.p_sat _ G₂.p_root
+    refine ⟨Subtype.embedLe leφ₁ '' Y₁ ∪ Subtype.embedLe leφ₂ '' Y₂,
+      delta_root _ _ hY₁ hY₂, ?_⟩
+    rintro ⟨v, q'⟩ ⟨rfl, hq'⟩
+    rcases hq' with ⟨y, hy, rfl⟩ | ⟨y, hy, rfl⟩
+    · exact Or.inl (Or.inl ⟨((M₁.q₀, 0), y), hE₁ ⟨rfl, hy⟩, by simp⟩)
+    · exact Or.inr ⟨y, hE₂ ⟨rfl, hy⟩, rfl⟩
+  · rcases hv with ⟨⟨q, l⟩, ⟨hq, hne⟩, rfl⟩
+    exact first q l hq hne
+  · rcases hv with ⟨⟨q, l⟩, ⟨hq, hne⟩, rfl⟩
+    by_cases hshared : (q.val, l) ∈ (Subtype.val <$> G₁.toDAG).V
+    · simp only [Functor.map, Set.mem_image, Prod.mk.injEq, Prod.exists,
+        exists_eq_right_right, Subtype.exists, exists_and_right, exists_eq_right] at hshared
+      obtain ⟨hq₁, hV₁⟩ := hshared
+      apply first ⟨q.val, hq₁⟩ l hV₁
+      intro h
+      exact hne ⟨(Prod.mk.inj h).2, Or.inl (congrArg Subtype.val (Prod.mk.inj h).1)⟩
+    · obtain ⟨Y, hY, hE⟩ := G₂.p_sat _ hq
+      refine ⟨Subtype.embedLe leφ₂ '' Y, ?_, ?_⟩
+      · rwa [delta_eq_2, PositiveBool.mapSubtypeImp_embed leφ₂]
+      · rintro ⟨v, q'⟩ ⟨rfl, y, hy, rfl⟩
+        refine Or.inl (Or.inr ⟨q, l, y, ⟨hq, hshared, ?_, ?_, hE ⟨rfl, hy⟩⟩, rfl⟩)
+        · intro h
+          exact hne ⟨(Prod.mk.inj h).2, Or.inl (Prod.mk.inj h).1⟩
+        · intro h
+          exact hne ⟨(Prod.mk.inj h).2, Or.inr (Prod.mk.inj h).1⟩
 
 /-- Conjoin run DAGs of `M₁` and `M₂` into a run DAG of `M`, witnessing that `M`
 runs both component automata in parallel from the shared root. -/
