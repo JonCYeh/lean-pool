@@ -268,7 +268,9 @@ lemma x_mem_tree_short (h : n < 2 * k) (hp : IsPosition (H.x.val.take n) Player.
   (H.R (pInv (treeHom hyp) ((stratMap' H.R).pre.subtreeIncl (Tree.take n H.x))
     (H.pInv_fixing h.le)) (H.pInv_isPosition h.le hp)).val := by
   have hget := congr_arg (fun x ↦ x.val[n]?) (H.x_mem_tree_short' h hp)
-  conv at hget => simp
+  simp only [take_coe, List.getElem?_take_of_lt (Nat.lt_succ_self n),
+    ExtensionsAt.valT'_coe] at hget
+  erw [pInv_treeHom_val (hyp := hyp) _ (List.length_take_le _ _)] at hget
   apply Option.some_injective
   have hHlvl := H.hlvl
   have hnbase :
