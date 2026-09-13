@@ -107,14 +107,14 @@ private theorem chordDot_shared_tip
     (hes : sqDist e s = d) (hts : sqDist t s = d) :
     2 * chordDot e t s = sqDist e t := by
   simp only [chordDot, sqDist] at *
-  nlinarith
+  linear_combination hes - hts
 
 private theorem chordDot_penultimate
     {e t w : Point ℝ} {d₁ d₂ : ℝ}
     (hew : sqDist e w = d₁) (htw : sqDist t w = d₂) :
     d₁ - d₂ = 2 * chordDot e t w - sqDist e t := by
   simp only [chordDot, sqDist] at *
-  nlinarith
+  linear_combination htw - hew
 
 private theorem chordDot_turn_identity (e t p : Point ℝ) :
     chordDot e t p ^ 2 + turn e t p ^ 2 =
@@ -137,15 +137,15 @@ theorem penultimate_turn_lt_shared_tip
   have hdotW := chordDot_penultimate hew htw
   have hdotSPos : 0 < chordDot e t s := by linarith
   have hdotSLtW : chordDot e t s < chordDot e t w := by linarith
-  have hdotSq : chordDot e t s ^ 2 < chordDot e t w ^ 2 := by
-    nlinarith [sq_nonneg (chordDot e t w - chordDot e t s)]
+  have hdotSq : chordDot e t s ^ 2 < chordDot e t w ^ 2 :=
+    (sq_lt_sq₀ hdotSPos.le (hdotSPos.trans hdotSLtW).le).mpr hdotSLtW
   have hlagrangeS := chordDot_turn_identity e t s
   have hlagrangeW := chordDot_turn_identity e t w
   have hturnSq : turn e t w ^ 2 < turn e t s ^ 2 := by
     rw [hes] at hlagrangeS
     rw [hew] at hlagrangeW
-    nlinarith
-  nlinarith [sq_nonneg (turn e t s - turn e t w)]
+    linarith only [hlagrangeS, hlagrangeW, hdotSq]
+  exact (sq_lt_sq₀ hw.le hs.le).mp hturnSq
 
 private theorem euclideanDist_eq_sqrt_of_sqDist_eq_global
     {a b : Point ℝ} {d : ℝ} (h : sqDist a b = d) :
@@ -1390,6 +1390,39 @@ theorem fourEdgeEndpointGeometry_of_cyclic_offsets
       diameterEdge := by simpa [T, S] using hts }
     arcPartition := hPartition }, rfl⟩
 
+private theorem strict_three_rank_chain
+    {K : Type*} [LinearOrder K] {x y z d₁ d₂ d₃ : K}
+    (hd₃d₂ : d₃ < d₂) (hd₂d₁ : d₂ < d₁)
+    (hx : x = d₁ ∨ x = d₂ ∨ x = d₃)
+    (hy : y = d₁ ∨ y = d₂ ∨ y = d₃)
+    (hz : z = d₁ ∨ z = d₂ ∨ z = d₃)
+    (hxy : x < y) (hyz : y < z) : x = d₃ ∧ y = d₂ ∧ z = d₁ := by
+  have hxLower : d₃ ≤ x := by
+    rcases hx with rfl | rfl | rfl
+    · exact (hd₃d₂.trans hd₂d₁).le
+    · exact hd₃d₂.le
+    · exact le_rfl
+  have hzUpper : z ≤ d₁ := by
+    rcases hz with rfl | rfl | rfl
+    · exact le_rfl
+    · exact hd₂d₁.le
+    · exact (hd₃d₂.trans hd₂d₁).le
+  have hyEq : y = d₂ := by
+    rcases hy with rfl | hy | rfl
+    · exact (hyz.not_ge hzUpper).elim
+    · exact hy
+    · exact (hxy.not_ge hxLower).elim
+  subst y
+  refine ⟨?_, rfl, ?_⟩
+  · rcases hx with rfl | rfl | hx
+    · exact (hd₂d₁.asymm hxy).elim
+    · exact (lt_irrefl _ hxy).elim
+    · exact hx
+  · rcases hz with hz | rfl | rfl
+    · exact hz
+    · exact (lt_irrefl _ hyz).elim
+    · exact (hd₃d₂.asymm hyz).elim
+
 namespace K3CoverSequence
 
 /-- Any actual two-cover witness exhausts the three strict distance ranks,
@@ -1425,10 +1458,9 @@ theorem two_cover_rank_endpoints
             sqDist (P (cyclicRetreat i (leftMoves + 1)))
               (P (cyclicAdvance j rightMoves)) := by
         simpa [cyclicRetreat_add, Nat.add_comm] using hTailGrow
-      rcases hStart.2 with hs₁ | hs₂ | hs₃ <;>
-        rcases hMid.2 with hm₁ | hm₂ | hm₃ <;>
-        rcases hEnd'.2 with he₁ | he₂ | he₃ <;>
-        constructor <;> linarith
+      have ranks := strict_three_rank_chain hd₃d₂ hd₂d₁
+        hStart.2 hMid.2 hEnd'.2 hCover hTailGrow'
+      exact ⟨ranks.1, ranks.2.2⟩
   | @right i' j' leftMoves rightMoves hCover tail =>
       unfold IsRightCover at hCover
       have hd₃d₂ := hClasses.1
@@ -1445,10 +1477,9 @@ theorem two_cover_rank_endpoints
             sqDist (P (cyclicRetreat i leftMoves))
               (P (cyclicAdvance j (rightMoves + 1))) := by
         simpa [cyclicAdvance_add, Nat.add_comm] using hTailGrow
-      rcases hStart.2 with hs₁ | hs₂ | hs₃ <;>
-        rcases hMid.2 with hm₁ | hm₂ | hm₃ <;>
-        rcases hEnd'.2 with he₁ | he₂ | he₃ <;>
-        constructor <;> linarith
+      have ranks := strict_three_rank_chain hd₃d₂ hd₂d₁
+        hStart.2 hMid.2 hEnd'.2 hCover hTailGrow'
+      exact ⟨ranks.1, ranks.2.2⟩
 
 end K3CoverSequence
 
@@ -1474,19 +1505,8 @@ theorem right_left_cover_rank_ladder
               unfold IsLeftCover at h₁
               have hMid := right_cover_top_three_adjacent hClasses hStart h₀
               have hEnd := left_cover_top_three_adjacent hClasses hMid h₁
-              have hd₃d₂ := hClasses.1
-              have hd₂d₁ := hClasses.2.1
-              have hEndRank : sqDist (P (cyclicRetreat i 1))
-                  (P (cyclicAdvance j 1)) = d₁ :=
-                two_covers_end_at_d₁ hClasses hStart hMid hEnd h₀ h₁
-              have hMidRank : sqDist (P i) (P (cyclicAdvance j 1)) = d₂ := by
-                rcases hMid.2 with hm₁ | hm₂ | hm₃
-                · linarith
-                · exact hm₂
-                · rcases hStart.2 with hs₁ | hs₂ | hs₃ <;> linarith
-              have hStartRank : sqDist (P i) (P j) = d₃ := by
-                rcases hStart.2 with hs₁ | hs₂ | hs₃ <;> linarith
-              exact ⟨hStartRank, hMidRank, hEndRank⟩
+              exact strict_three_rank_chain hClasses.1 hClasses.2.1
+                hStart.2 hMid.2 hEnd.2 h₀ h₁
 
 /-- The opposite one-left/one-right order has the same rank ladder, with
 the middle edge obtained by retreating the left endpoint. -/
@@ -1508,19 +1528,8 @@ theorem left_right_cover_rank_ladder
               unfold IsRightCover at h₁
               have hMid := left_cover_top_three_adjacent hClasses hStart h₀
               have hEnd := right_cover_top_three_adjacent hClasses hMid h₁
-              have hd₃d₂ := hClasses.1
-              have hd₂d₁ := hClasses.2.1
-              have hEndRank : sqDist (P (cyclicRetreat i 1))
-                  (P (cyclicAdvance j 1)) = d₁ :=
-                two_covers_end_at_d₁ hClasses hStart hMid hEnd h₀ h₁
-              have hMidRank : sqDist (P (cyclicRetreat i 1)) (P j) = d₂ := by
-                rcases hMid.2 with hm₁ | hm₂ | hm₃
-                · linarith
-                · exact hm₂
-                · rcases hStart.2 with hs₁ | hs₂ | hs₃ <;> linarith
-              have hStartRank : sqDist (P i) (P j) = d₃ := by
-                rcases hStart.2 with hs₁ | hs₂ | hs₃ <;> linarith
-              exact ⟨hStartRank, hMidRank, hEndRank⟩
+              exact strict_three_rank_chain hClasses.1 hClasses.2.1
+                hStart.2 hMid.2 hEnd.2 h₀ h₁
 
 end K3CoverSequence
 
