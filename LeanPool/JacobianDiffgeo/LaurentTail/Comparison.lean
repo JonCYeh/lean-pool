@@ -370,6 +370,11 @@ theorem gOf_memLD_of_clean (p : X) (D D' : RS.Divisor X) (ψ : RS.MeroGermOn X (
     (ψV : RS.LinSysOn D' (V : Set X))
     (hψV : (ψV : RS.MeroGermOn X (V : Set X)) = RS.MeroGermOn.restrict hVsub ψ) :
     (RS.Cech.d0 D' (pairCover p V hpV) (gOf p V hpV D' ψV)).MemLD D := by
+  have hbound (x : X) (hxV : x ∈ (V : Set X)) (hxp : x ≠ p) :
+      ((-D x : ℤ) : WithTop ℤ) ≤ (ψV : RS.MeroGermOn X (V : Set X)).ord x := by
+    rw [hψV, RS.MeroGermOn.ord_restrict hVsub V.2 (chartAt ℂ p).open_source hxV,
+      hVDzero x hxV hxp]
+    simpa using hVclean x hxV hxp
   rintro ⟨i, j⟩
   fin_cases i <;> fin_cases j <;> dsimp only
   · rw [d0_pairCover_diag]; exact Submodule.zero_mem _
@@ -377,27 +382,15 @@ theorem gOf_memLD_of_clean (p : X) (D D' : RS.Divisor X) (ψ : RS.MeroGermOn X (
     refine (RS.mem_linSysOn_iff_of_isOpen ((pairCover p V hpV).U _ ⊓
         (pairCover p V hpV).U _).2).2 ?_
     intro x hx
-    have hxV : x ∈ (V : Set X) := hx.1
-    have hxp : x ≠ p := hx.2
     rw [Submodule.coe_neg, RS.MeroGermOn.ord_neg,
-      RS.Cech.ord_restrictL D' inf_le_left hx ψV, hψV]
-    have hordeq : ((RS.MeroGermOn.restrict hVsub) ψ).ord x = ψ.ord x :=
-      RS.MeroGermOn.ord_restrict hVsub V.2 (chartAt ℂ p).open_source hxV ψ
-    have hbound : (((-D x : ℤ) : WithTop ℤ)) ≤ ψ.ord x := by
-      rw [hVDzero x hxV hxp]; simpa using hVclean x hxV hxp
-    exact hbound.trans_eq hordeq.symm
+      RS.Cech.ord_restrictL D' inf_le_left hx ψV]
+    exact hbound x hx.1 hx.2
   · erw [RS.Cech.d0_apply, gOf_apply_zero, gOf_apply_one, map_zero, sub_zero]
     refine (RS.mem_linSysOn_iff_of_isOpen ((pairCover p V hpV).U _ ⊓
         (pairCover p V hpV).U _).2).2 ?_
     intro x hx
-    have hxV : x ∈ (V : Set X) := hx.2
-    have hxp : x ≠ p := hx.1
-    rw [RS.Cech.ord_restrictL D' inf_le_right hx ψV, hψV]
-    have hordeq : ((RS.MeroGermOn.restrict hVsub) ψ).ord x = ψ.ord x :=
-      RS.MeroGermOn.ord_restrict hVsub V.2 (chartAt ℂ p).open_source hxV ψ
-    have hbound : (((-D x : ℤ) : WithTop ℤ)) ≤ ψ.ord x := by
-      rw [hVDzero x hxV hxp]; simpa using hVclean x hxV hxp
-    exact hbound.trans_eq hordeq.symm
+    rw [RS.Cech.ord_restrictL D' inf_le_right hx ψV]
+    exact hbound x hx.2 hx.1
   · rw [d0_pairCover_diag]; exact Submodule.zero_mem _
 
 /-! ### `gOf` commutes with `inclC0` and with refinement (`resC0`) -/
@@ -700,8 +693,8 @@ noncomputable def tailToH1 (D : RS.Divisor X) : T D →ₗ[ℂ] RS.Cech.H1 D :=
 
 omit [ConnectedSpace X] in
 theorem tailToH1_apply_single (D : RS.Divisor X) (p : X) (τ : TailAt p D) :
-    tailToH1 D (DFinsupp.single p τ) = tailAtToH1 D p τ := by
-  rw [tailToH1, DFinsupp.lsum_single]
+    tailToH1 D (DFinsupp.single p τ) = tailAtToH1 D p τ :=
+  DFinsupp.lsum_single ℕ (fun q => tailAtToH1 D q) p τ
 
 
 
@@ -1506,13 +1499,14 @@ theorem H1Tail.toH1_injective (D : RS.Divisor X) : Function.Injective (H1Tail.to
     inj_main ψ S D D' hD'mem h𝒱Adapted hOclause S (Finset.Subset.refl S)
   have hclass0 : RS.Cech.mlClass 𝒱 (injG ψ S D D' hD'mem hOclause S)
       (inj_hg_MemLD ψ S D D' hD'mem h𝒱Adapted hOclause S) = 0 := by
-    have hlsum : tailToH1 D z = ∑ q ∈ S, tailAtToH1 D q (z q) :=
-      DFinsupp.sumAddHom_apply _ _
-    rw [hlsum] at hξ
-    rw [show (∑ q ∈ S, tailAtToH1 D q (z q)) = ∑ q ∈ S, mlClassAt D q (ψ q) from
-      Finset.sum_congr rfl (fun q _ => by rw [← hψ q, tailAtToH1_mk])] at hξ
-    rw [← hsum0]
-    exact hξ
+    refine hsum0.symm.trans ?_
+    calc
+      ∑ q ∈ S, mlClassAt D q (ψ q) = ∑ q ∈ S, tailAtToH1 D q (z q) :=
+        Finset.sum_congr rfl (fun q _ =>
+          (tailAtToH1_mk D q (ψ q)).symm.trans (congrArg (tailAtToH1 D q) (hψ q)))
+      _ = tailToH1 D z :=
+        (DFinsupp.sumAddHom_apply (fun q => (tailAtToH1 D q).toAddMonoidHom) z).symm
+      _ = 0 := hξ
   obtain ⟨φ, hφ⟩ := (RS.Cech.mlClass_eq_zero_iff hDD' (injG ψ S D D' hD'mem hOclause S)
     (inj_hg_MemLD ψ S D D' hD'mem h𝒱Adapted hOclause S)).1 hclass0
   refine ⟨(φ : RS.Mero X), ?_⟩
@@ -1525,10 +1519,7 @@ theorem H1Tail.toH1_injective (D : RS.Divisor X) : Function.Injective (H1Tail.to
     rw [injG_apply_of_mem ψ S D D' hD'mem hOclause S kp p hp hp hkp_mem,
       inj_hcoe ψ S D D' hD'mem hOclause φ p hp kp hkp_mem p hkp_mem] at hφp
     rw [alpha_apply, ← hψ p, ← sub_eq_zero, ← map_sub, TailAt.mk_eq_zero_iff,
-      show RS.MeroGermOn.restrict (Set.subset_univ (chartAt ℂ p).source)
-          (φ : RS.MeroGermOn X (Set.univ : Set X)) - ψ p =
-        -(ψ p - RS.MeroGermOn.restrict (Set.subset_univ (chartAt ℂ p).source)
-          (φ : RS.MeroGermOn X (Set.univ : Set X))) from by ring,
+      ← neg_sub,
       RS.MeroGermOn.ord_neg]
     exact hφp
   · have hz0 : z p = 0 := DFinsupp.notMem_support_iff.mp hp
@@ -1552,11 +1543,9 @@ theorem H1Tail.toH1_injective (D : RS.Divisor X) : Function.Injective (H1Tail.to
       have hordφ : (0 : WithTop ℤ) ≤
           (RS.MeroGermOn.restrict (Set.subset_univ (chartAt ℂ q).source)
             (φ : RS.MeroGermOn X (Set.univ : Set X))).ord p := by
-        have hsplit : (RS.MeroGermOn.restrict (Set.subset_univ (chartAt ℂ q).source)
-            (φ : RS.MeroGermOn X (Set.univ : Set X)) : RS.MeroGermOn X (chartAt ℂ q).source) =
-          ψ q + (-(ψ q - RS.MeroGermOn.restrict (Set.subset_univ (chartAt ℂ q).source)
-            (φ : RS.MeroGermOn X (Set.univ : Set X)))) := by ring
-        rw [hsplit]
+        rw [← sub_sub_cancel (ψ q)
+          (RS.MeroGermOn.restrict (Set.subset_univ (chartAt ℂ q).source)
+            (φ : RS.MeroGermOn X (Set.univ : Set X))), sub_eq_add_neg]
         refine le_trans ?_ (RS.MeroGermOn.ord_add (chartAt ℂ q).open_source hqPatch _ _)
         rw [RS.MeroGermOn.ord_neg]
         exact le_min hordψq hb2
@@ -1585,7 +1574,7 @@ theorem H1Tail.toH1_surjective_of_tailToH1_surjective (D : RS.Divisor X)
     (hsurj : Function.Surjective (tailToH1 D)) : Function.Surjective (H1Tail.toH1 D) := by
   intro ξ
   obtain ⟨z, hz⟩ := hsurj ξ
-  exact ⟨H1Tail.mk D z, by rw [H1Tail.toH1_mk]; exact hz⟩
+  exact ⟨H1Tail.mk D z, (H1Tail.toH1_mk D z).trans hz⟩
 
 /-- CC8's mandate, conditional on `tailToH1`'s surjectivity (item 3 of the four deferrals,
 gated on `dolbeault-comparison`'s Leray/Mittag-Leffler-existence machinery — see this file's
