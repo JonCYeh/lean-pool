@@ -151,25 +151,20 @@ lemma losable_or_winnable :
   let ⟨n, hn⟩ := le_iff_exists_add.mp H.hlvl_le
   induction n generalizing H with
   | zero =>
-    -- TODO: explain why this stronger disjunction helps the following `tauto`.
-    suffices H.preLift.Losable ∨ H.preLift.Winnable ∨ H.preLift.Won by
-      have (h : H.preLift.Won) : H.preLift.Winnable := (PreLift.WLift.mk _ h).winnable; tauto
-    have := Lift.con_of_short (hyp := hyp); tauto
+    by_cases h : H.preLift.Winnable
+    · exact Or.inr h
+    · exact Or.inl ⟨h, Lift.con_of_short _ hn⟩
   | succ n ih =>
     let hlong' : 2 * k + 2 ≤ H.x.val.length := by synthIsPosition
     let Ht := H.dropLast hlong'
+    by_cases hWinnable : H.preLift.Winnable
+    · exact Or.inr hWinnable
+    left
+    have hLosable : H.preLift.Losable' := hWinnable
+    refine ⟨hLosable, ?_⟩
     rcases ih Ht (by dsimp [Ht]; synthIsPosition) with ih | ih
-    · have : ¬ H.preLift.Winnable → ¬ Ht.preLift.Winnable := by
-        intro hw h; apply hw; exact h.winnable_of_le (by simp [Ht, dropLast])
-      have : ¬ H.preLift.Won → ¬ Ht.preLift.Won := by
-        intro hw h; apply hw; exact h.won_of_le (by simp [Ht, dropLast])
-      suffices H.preLift.Losable ∨ H.preLift.Winnable ∨ H.preLift.Won by
-        have (h : H.preLift.Won) : H.preLift.Winnable := (PreLift.WLift.mk _ h).winnable; tauto
-      suffices ¬ Ht.preLift.Winnable → ¬ Ht.preLift.Won → ¬ H.preLift.Winnable
-        → H.preLift.Losable' → H.preLift.Losable by tauto
-      intro hnW hnW' hnW'' h; use h
-      by_cases IsPosition H.x.val Player.one
-      · let HL := PreLift.LLift.mk _ h
+    · by_cases IsPosition H.x.val Player.one
+      · let HL := PreLift.LLift.mk _ hLosable
         by_cases hc : HL.toLift.Con
         · exact hc
         · have hlif : (PreLift.LLift.mk _ ih.1).toLift =
@@ -197,7 +192,7 @@ lemma losable_or_winnable :
           have hcm := HL.concat_mem_tree (a := H.x.val[2 * k + 1 + n]) (by
             unfold HL; synthIsPosition) (by
             simpa [hlist, HL] using subtree_sub _ H.x.prop) hcl (by
-              intro h; apply hnW''; use n + 1
+              intro h; apply hWinnable; use n + 1
               simp_rw [WinningPosition] at h
               convert h using 2
               · simp [hlist, hn, HL]
@@ -219,7 +214,7 @@ lemma losable_or_winnable :
         · change (defensiveQuasi H.preLift.game Player.one (hyp.pruned.sub _)).1.subtree = _
           have hG : H.preLift.game = Ht.preLift.game := by simp [Ht, dropLast]
           exact Game.defensiveQuasi_subtree (hG := hG) (hp := rfl) _
-    · exact Or.inr (ih.winnable_of_le (by simp [Ht, dropLast]))
+    · exact (hWinnable (ih.winnable_of_le (by simp [Ht, dropLast]))).elim
 
 attribute [local implicit_reducible] upA oldAsTrees gameAsTrees in
 lemma x_mem_tree_short' (h : n < 2 * k) (hp : IsPosition (H.x.val.take n) Player.one) :
