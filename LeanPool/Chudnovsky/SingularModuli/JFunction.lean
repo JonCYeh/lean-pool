@@ -97,10 +97,9 @@ theorem J_smul (γ : SL(2, ℤ)) (τ : ℍ) : J (γ • τ) = J τ := by
   have hE₆ : E₆ (γ • τ) = denom γ τ ^ 6 * E₆ τ := by
     have h := modularForm_SL_smul E₆ γ τ
     rwa [zpow_ofNat] at h
-  have h1 : (denom γ τ ^ 4 * E₄ τ) ^ 3 = denom γ τ ^ 12 * E₄ τ ^ 3 := by ring
-  have h2 : (denom γ τ ^ 6 * E₆ τ) ^ 2 = denom γ τ ^ 12 * E₆ τ ^ 2 := by ring
-  rw [J, J, hE₄, hE₆, h1, h2, ← mul_sub,
-    mul_div_mul_left _ _ (pow_ne_zero 12 hd)]
+  rw [J, J, hE₄, hE₆, mul_pow, mul_pow, ← pow_mul, ← pow_mul]
+  norm_num only [Nat.reduceMul]
+  rw [← mul_sub, mul_div_mul_left _ _ (pow_ne_zero 12 hd)]
 
 /-- The `j`-invariant is `SL(2,ℤ)`-invariant: `j (γ • τ) = j τ`. -/
 theorem j_smul (γ : SL(2, ℤ)) (τ : ℍ) : j (γ • τ) = j τ := by
@@ -493,12 +492,8 @@ theorem qExpansion_j_mul_q :
   rw [qExpansion_discriminant_int, deltaInt_eq_X_mul_deltaTail, map_mul,
     PowerSeries.map_X] at hkey
   -- cancel the factor `X`
-  have hX : (PowerSeries.X : PowerSeries ℂ)
-        * (qExpansion 1 (fun τ : ℍ ↦ j τ * q τ)
-            * PowerSeries.map (Int.castRingHom ℂ) deltaTail)
-      = PowerSeries.X * PowerSeries.map (Int.castRingHom ℂ) (E4Z ^ 3) := by
-    linear_combination hkey
-  have hcancel := mul_left_cancel₀ PowerSeries.X_ne_zero hX
+  rw [← mul_assoc, mul_right_comm] at hkey
+  have hcancel := mul_right_cancel₀ PowerSeries.X_ne_zero hkey
   -- multiply by the inverse of the unit `deltaTail`
   have hunit : PowerSeries.map (Int.castRingHom ℂ) deltaTail
       * PowerSeries.map (Int.castRingHom ℂ) (deltaTail.invOfUnit 1) = 1 := by
@@ -511,7 +506,7 @@ theorem qExpansion_j_mul_q :
         rw [hunit, mul_one]
     _ = (qExpansion 1 (fun τ : ℍ ↦ j τ * q τ)
           * PowerSeries.map (Int.castRingHom ℂ) deltaTail)
-        * PowerSeries.map (Int.castRingHom ℂ) (deltaTail.invOfUnit 1) := by ring
+        * PowerSeries.map (Int.castRingHom ℂ) (deltaTail.invOfUnit 1) := (mul_assoc _ _ _).symm
     _ = PowerSeries.map (Int.castRingHom ℂ) (E4Z ^ 3)
         * PowerSeries.map (Int.castRingHom ℂ) (deltaTail.invOfUnit 1) := by rw [hcancel]
     _ = PowerSeries.map (Int.castRingHom ℂ) jqInt := by rw [jqInt, map_mul]
