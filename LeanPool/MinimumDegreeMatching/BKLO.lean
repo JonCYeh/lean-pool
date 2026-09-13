@@ -38,40 +38,33 @@ theorem exists_threshold_sq_le_exp {a : ℝ} (ha : 0 < a) {k : ℕ} (hk : 0 < k)
   have hkR : (0 : ℝ) < k := by exact_mod_cast hk
   set b : ℝ := a / (3 * k) with hb
   have hbpos : 0 < b := by positivity
-  have hbk : 3 * (b * (k : ℝ)) = a := by rw [hb]; field_simp
   refine ⟨⌈Real.exp a / b ^ 3⌉₊ + 1, ?_⟩
   intro n hn
-  have hn1 : 1 ≤ n := le_trans (Nat.le_add_left 1 _) hn
-  have hnpos : (0 : ℝ) < n := by exact_mod_cast hn1
   have hnge : Real.exp a / b ^ 3 ≤ (n : ℝ) := by
-    have h1 : Real.exp a / b ^ 3 ≤ (⌈Real.exp a / b ^ 3⌉₊ : ℝ) := Nat.le_ceil _
-    have h2 : ((⌈Real.exp a / b ^ 3⌉₊ : ℕ) : ℝ) ≤ (n : ℝ) := by
-      exact_mod_cast le_trans (Nat.le_succ _) hn
-    linarith
+    exact (Nat.le_ceil _).trans (by exact_mod_cast le_trans (Nat.le_succ _) hn)
   have hbn : Real.exp a ≤ b ^ 3 * n := by
-    rw [div_le_iff₀ (by positivity)] at hnge
-    linarith
+    simpa only [mul_comm] using (div_le_iff₀ (pow_pos hbpos 3)).mp hnge
   have hcube : (b * n) ^ 3 ≤ Real.exp (a * (n : ℝ) / k) := by
     have h1 : b * n ≤ Real.exp (b * n) := by
-      have := Real.add_one_le_exp (b * (n : ℝ)); linarith
+      exact (le_add_of_nonneg_right zero_le_one).trans (Real.add_one_le_exp _)
     have h2 : (b * n) ^ 3 ≤ (Real.exp (b * (n : ℝ))) ^ 3 :=
       pow_le_pow_left₀ (by positivity) h1 3
     have h3 : (Real.exp (b * (n : ℝ))) ^ 3 = Real.exp (a * (n : ℝ) / k) := by
-      rw [← Real.exp_nat_mul]
+      rw [← Real.exp_nat_mul, hb]
       congr 1
-      field_simp
       push_cast
-      nlinarith only [hbk]
-    linarith only [h3 ▸ h2]
+      field_simp
+    exact h3 ▸ h2
   have hexp : Real.exp (a * ((n : ℝ) / k - 1)) = Real.exp (a * (n : ℝ) / k) / Real.exp a := by
     rw [← Real.exp_sub]
     congr 1
     ring
   rw [hexp, le_div_iff₀ (Real.exp_pos a)]
-  have h4 : (n : ℝ) ^ 2 * Real.exp a ≤ (n : ℝ) ^ 2 * (b ^ 3 * n) :=
-    mul_le_mul_of_nonneg_left hbn (by positivity)
-  have heq : (n : ℝ) ^ 2 * (b ^ 3 * n) = (b * n) ^ 3 := by ring
-  linarith [hcube]
+  calc
+    (n : ℝ) ^ 2 * Real.exp a ≤ (n : ℝ) ^ 2 * (b ^ 3 * n) :=
+      mul_le_mul_of_nonneg_left hbn (sq_nonneg _)
+    _ = (b * n) ^ 3 := by ring
+    _ ≤ Real.exp (a * (n : ℝ) / k) := hcube
 
 /-! ### Parameter bookkeeping -/
 
