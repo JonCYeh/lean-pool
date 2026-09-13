@@ -245,7 +245,8 @@ lemma winning_condition : WinningCondition H.toLift.liftShort.val (by simp) := b
         (H.toLift.liftShort.val.eq_take_concat (2 * k + 1) (by simp))
       rw [hconcat]
       erw [List.map_append, List.map_singleton]
-      simp_all; rfl
+      simp only [Lift.liftShort_val_take, Lift.liftVeryShort_val_map, toLift_toPreLift]
+      rfl
   apply Set.mem_iUnion₂_of_mem hWon
   change (H.toLift.liftShort.val[2 * k + 1].1 :: u) ++ₛ a.val ∈
     principalOpen (H.toLift.liftShort.val[2 * k + 1].1 :: u)
