@@ -98,21 +98,14 @@ lemma sum_lt_half_zero_case (p q : ℤ)
     (hp : p ≤ ⌊((0 : ℕ) : ℝ) / 6⌋) (hq : q ≤ ⌊((0 : ℕ) : ℝ) / 6⌋)
     (hgcd : Int.gcd p q = 1) :
     (p : ℝ) + (q : ℝ) < ((0 : ℕ) : ℝ) / 2 := by
-  have h₁ : ⌊((0 : ℕ) : ℝ) / 6⌋ = 0 := by norm_num [Int.floor_eq_iff]
-  have h₂ : p ≤ 0 := by rw [h₁] at hp; exact_mod_cast hp
-  have h₃ : q ≤ 0 := by rw [h₁] at hq; exact_mod_cast hq
-  have h₉ : p < 0 ∨ q < 0 := by
+  norm_num only [Nat.cast_zero, zero_div, Int.floor_zero] at hp hq ⊢
+  have hsum : p + q < 0 := by
     by_contra! h
-    have h₁₀ : p = 0 := by linarith
-    have h₁₁ : q = 0 := by linarith
-    simp_all
-  rcases h₉ with h₉ | h₉
-  · have : (p : ℝ) < 0 := by exact_mod_cast h₉
-    have : (q : ℝ) ≤ 0 := by exact_mod_cast h₃
-    norm_num; linarith
-  · have : (q : ℝ) < 0 := by exact_mod_cast h₉
-    have : (p : ℝ) ≤ 0 := by exact_mod_cast h₂
-    norm_num; linarith
+    have hp0 : p = 0 := by omega
+    have hq0 : q = 0 := by omega
+    simp only [hp0, hq0, Int.gcd_zero_left, Int.natAbs_zero] at hgcd
+    contradiction
+  exact_mod_cast hsum
 
 lemma sum_lt_half_pos_case (n : ℕ) (p q : ℤ) (hn : 1 ≤ n)
     (hp : p ≤ ⌊(n : ℝ) / 6⌋) (hq : q ≤ ⌊(n : ℝ) / 6⌋) :
@@ -160,17 +153,10 @@ lemma Int_Icc_ncard (a b : ℤ) :
 lemma eta_n_plus_one_le_n_div_six (η : ℝ) (_hη_pos : 0 < η) (hη_lt : η < 1 / 6) :
     ∃ (N₀ : ℕ), ∀ n : ℕ, N₀ ≤ n →
       η * (n : ℝ) + 1 ≤ (n : ℝ) / 6 := by
-  have h_delta_pos : 0 < (1 / 6 : ℝ) - η := by simp_all
-  set N₀ := ⌈(1 : ℝ) / ((1 / 6 : ℝ) - η)⌉₊ with hN₀_def
-  use N₀
-  intro n hn
-  have h₂ : (n : ℝ) ≥ (1 : ℝ) / ((1 / 6 : ℝ) - η) := by simp_all
-  have h₄ : ((1 / 6 : ℝ) - η) * (n : ℝ) ≥ 1 := by
-    have := mul_le_mul_of_nonneg_left h₂ (le_of_lt h_delta_pos)
-    rw [mul_div_cancel₀] at this
-    · linarith
-    · exact ne_of_gt h_delta_pos
-  nlinarith
+  refine ⟨⌈(1 : ℝ) / ((1 / 6 : ℝ) - η)⌉₊, fun n hn => ?_⟩
+  have hbound := (Nat.le_ceil ((1 : ℝ) / ((1 / 6 : ℝ) - η))).trans (Nat.cast_le.mpr hn)
+  have hproduct := (div_le_iff₀ (sub_pos.mpr hη_lt)).mp hbound
+  linarith only [hproduct]
 
 lemma int_expr_real_lower_bound (η : ℝ) (n : ℕ) :
     (n : ℝ) / 6 - η * (n : ℝ) - 1 <
@@ -252,24 +238,14 @@ lemma inv_sq_le_inv_pred_mul (k : ℕ) (hk : 2 ≤ k) :
 
 lemma telescoping_sum_eq (N : ℕ) (hN : 3 ≤ N) :
     ∑ k ∈ Finset.Icc 3 N, (1 : ℝ) / ((k - 1 : ℝ) * k) = 1 / 2 - 1 / N := by
-  have h₁ : ∀ n : ℕ, 3 ≤ n → ∑ k ∈ Finset.Icc 3 n, (1 : ℝ) / ((k - 1 : ℝ) * k) = 1 / 2 - 1 / n := by
-    intro n hn
-    induction n, hn using Nat.le_induction with
-    | base => norm_num [Finset.sum_Icc_succ_top]
-    | succ n hn IH =>
-      cases n with
-      | zero => contradiction
-      | succ n =>
-        cases n with
-        | zero => contradiction
-        | succ n =>
-          cases n with
-          | zero => contradiction
-          | succ n =>
-            simp_all [Finset.sum_Icc_succ_top, Nat.cast_succ]
-            field_simp [Nat.cast_add_one_ne_zero]
-            ring_nf
-  exact h₁ N hN
+  induction N, hN using Nat.le_induction with
+  | base => norm_num
+  | succ n hn ih =>
+    rw [Finset.sum_Icc_succ_top (by omega : 3 ≤ n.succ), ih]
+    simp only [Nat.cast_succ, add_sub_cancel_right]
+    have hn0 : (n : ℝ) ≠ 0 := by exact_mod_cast (by omega : n ≠ 0)
+    field_simp [hn0]
+    ring
 
 lemma tail_sum_le_half (N : ℕ) :
     ∑ k ∈ Finset.Icc 3 N, (1 : ℝ) / (k : ℝ) ^ 2 ≤ 1 / 2 := by
@@ -2266,27 +2242,15 @@ lemma inv_le_log_ratio (u : ℕ) (hu : 1 ≤ u) :
 lemma telescoping_log_sum (N : ℕ) (hN : 1 ≤ N) :
     ∑ u ∈ Finset.Icc 1 N, Real.log ((2 * (u : ℝ) + 1) / (2 * u - 1)) =
     Real.log (2 * N + 1) := by
-  have h : ∀ (n : ℕ), 1 ≤ n → ∑ u ∈ Finset.Icc 1 n,
-    Real.log ((2 * (u : ℝ) + 1) / (2 * u - 1)) = Real.log (2 * n + 1) := by
-    intro n hn
-    induction n, hn using Nat.le_induction with
-    | base => norm_num [Finset.sum_Icc_succ_top]
-    | succ n hn IH =>
-      rw [Finset.sum_Icc_succ_top (by omega : 1 ≤ n.succ)]
-      rw [IH]
-      have h₁ : (n : ℝ) ≥ 1 := by exact_mod_cast hn
-      have h₂ : (2 * (n : ℝ) + 1 : ℝ) > 0 := by linarith
-      have h₃ : (2 * (n : ℝ) - 1 : ℝ) > 0 := by linarith
-      have h₄ : (2 * (n.succ : ℝ) + 1 : ℝ) > 0 := by positivity
-      have h₅ : (2 * (n.succ : ℝ) - 1 : ℝ) > 0 := by
-        have h₆ : (n : ℝ) ≥ 1 := by exact_mod_cast hn
-        norm_num [Nat.cast_add, Nat.cast_one] at h₆ ⊢
-        linarith
-      have h₇ : (2 * (n.succ : ℝ) + 1 : ℝ) = (2 * (n : ℝ) + 3 : ℝ) := by push_cast; ring
-      have h₈ : (2 * (n.succ : ℝ) - 1 : ℝ) = (2 * (n : ℝ) + 1 : ℝ) := by push_cast; ring
-      rw [h₇, h₈, Real.log_div (by linarith) (by linarith)]
-      linarith
-  exact h N hN
+  induction N, hN using Nat.le_induction with
+  | base => norm_num
+  | succ n hn ih =>
+    rw [Finset.sum_Icc_succ_top (by omega : 1 ≤ n.succ), ih]
+    have hdenominator : 2 * (n.succ : ℝ) - 1 = 2 * (n : ℝ) + 1 := by
+      push_cast
+      ring
+    rw [hdenominator, Real.log_div (by positivity) (by positivity)]
+    abel
 
 lemma harmonic_Icc_le_log_odd (N : ℕ) (hN : 1 ≤ N) :
     ∑ u ∈ Finset.Icc 1 N, (u : ℝ)⁻¹ ≤ Real.log (2 * N + 1) := by
@@ -2689,7 +2653,7 @@ lemma summand_congr_on_filter
         then ‖normalizedDFT n (intervalIndicator n mq) l‖ /
              (2 * min (ZMod.val k : ℝ) ((n : ℝ) - ZMod.val k))
         else 0)) := by
-  simp_all
+  simp only [ne_eq, hk, not_false_eq_true, true_and]
 
 lemma sum_restrict_to_nonzero
     (n d : ℕ) [NeZero n] [NeZero d]
@@ -2945,14 +2909,12 @@ lemma weight_sum_multiples_of_d_bound
     ∑ k ∈ Finset.univ.filter (fun k : ZMod n => k ≠ 0 ∧ (d : ℕ) ∣ ZMod.val k),
       (1 : ℝ) / (2 * min (ZMod.val k : ℝ) ((n : ℝ) - ZMod.val k)) ≤
     (1 + Real.log (n : ℝ)) / d := by
-  have hd_cast : (0 : ℝ) < (d : ℝ) := Nat.cast_pos.mpr hd_pos
   rw [reindex_multiples_of_d n d hd_dvd hd_pos]
-  have h := symmetric_sum_le_one_plus_log n d hn hd_dvd hd_pos
-  calc 1 / (d : ℝ) * ∑ j ∈ Finset.Icc 1 (n / d - 1),
-        (1 : ℝ) / (2 * min (j : ℝ) ((↑(n / d) : ℝ) - j))
-      ≤ 1 / (d : ℝ) * (1 + Real.log n) := by
-        simp_all
-    _ = (1 + Real.log (n : ℝ)) / d := by ring
+  calc
+    _ ≤ 1 / (d : ℝ) * (1 + Real.log n) :=
+      mul_le_mul_of_nonneg_left (symmetric_sum_le_one_plus_log n d hn hd_dvd hd_pos)
+        (one_div_nonneg.mpr (Nat.cast_nonneg d))
+    _ = _ := one_div_mul_eq_div _ _
 
 lemma d_dvd_n (n : ℕ) (_hn : 2 ≤ n) :
     largestPrimeFactor n ^ n.factorization (largestPrimeFactor n) ∣ n := by
@@ -2980,21 +2942,8 @@ lemma simplify_u_sum_when_d_dvd_k
         if ((d : ℤ) ∣ ↑(ZMod.val l))
         then ‖normalizedDFT n (intervalIndicator n mq) l‖
         else 0) := by
-  have h : ∀ u : (ZMod d)ˣ,
-      (∑ l : ZMod n,
-        if ((d : ℤ) ∣ (↑(ZMod.val k) * ↑(u : ZMod d).val + ↑(ZMod.val l) * q))
-        then ‖normalizedDFT n (intervalIndicator n mq) l‖
-        else 0) =
-      (∑ l : ZMod n,
-        if ((d : ℤ) ∣ ↑(ZMod.val l))
-        then ‖normalizedDFT n (intervalIndicator n mq) l‖
-        else 0) := by
-    intro u
-    apply Finset.sum_congr rfl
-    intro l _
-    have h := dvd_simplify_multiple_case n d k l u q hdk hq_coprime_d
-    simp only [h]
-  simp_all
+  simp_rw [dvd_simplify_multiple_case n d k _ _ q hdk hq_coprime_d]
+  simp only [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
 
 lemma restricted_fourier_mass_le
     (n d : ℕ) [NeZero n] (hn : 2 ≤ n)
@@ -4356,13 +4305,8 @@ theorem log_two_n_plus_one_le_one_plus_log (n : ℕ) (hn : 2 ≤ n) :
 
 theorem sum_range_eq_sum_Icc (M : ℕ) :
     ∑ j ∈ Finset.range M, (1 : ℝ) / ((j : ℝ) + 1) = ∑ u ∈ Finset.Icc 1 M, (↑u)⁻¹ := by
-  have h₁ : ∀ j : ℕ, (1 : ℝ) / ((j : ℝ) + 1) = ((j + 1 : ℕ) : ℝ)⁻¹ := by
-    intro j; push_cast; rw [one_div]
-  simp_rw [h₁]
-  symm
-  apply Finset.sum_bij' (fun (u : ℕ) _ => u - 1) (fun (j : ℕ) _ => j + 1) <;>
-    simp_all [Finset.mem_Icc, Finset.mem_range]
-  omega
+  rw [← Finset.Ico_succ_right_eq_Icc, Finset.sum_Ico_eq_sum_range]
+  simp only [Nat.succ_eq_succ, Nat.succ_sub_one, Nat.cast_add, Nat.cast_one, one_div, add_comm]
 
 lemma harmonic_range_le_one_plus_log (M n : ℕ) (hn : 2 ≤ n) (hM : M ≤ n) :
     ∑ j ∈ Finset.range M, (1 : ℝ) / ((j : ℝ) + 1) ≤ 1 + Real.log ↑n := by
