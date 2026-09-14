@@ -129,6 +129,7 @@ Apache License, Version 2.0, and are redistributed here under the same license.
   LeanPool/MoserLatticeColorings     https://github.com/lyfar/moser-lattice-colorings-lean
   LeanPool/MulticolorTriangleRamsey  https://github.com/openai/ten-proofs
   LeanPool/NashWilliams              https://github.com/yannpequignot/TwoBQO
+  LeanPool/NavierStokesAndEuler      https://github.com/openai/NavierStokesAndEuler
   LeanPool/Neukirch                  https://github.com/jjdishere/neukirch
   LeanPool/NonSoficGroup             https://github.com/openai/ten-proofs
   LeanPool/OSforGFF                  https://github.com/mrdouglasny/OSforGFF
