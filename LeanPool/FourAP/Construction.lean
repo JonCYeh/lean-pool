@@ -18,7 +18,7 @@ Adding one to each value gives the positive sequence; shifting the positions
 as well gives the positive permutation in the paper's indexing convention.
 
 The numerical prefixes from the remark are checked separately in
-`FourAP.Examples`, using the stabilization results proved here.
+its upstream numerical examples module, using the stabilization results proved here.
 -/
 
 namespace FourAP
