@@ -40,6 +40,26 @@ CARD_PREFIX = "  - slug: "
 RESOLVABLE = frozenset({INDEX, REGISTRY})
 
 
+def _uses_module_system(source: str) -> bool:
+    """Detect a module header in either current version of a conflicted index."""
+    conflict = re.compile(
+        r"^<<<<<<<[^\n]*\n(?P<ours>.*?)"
+        r"(?:^\|{7}[^\n]*\n.*?)?^=======\n"
+        r"(?P<theirs>.*?)^>>>>>>>[^\n]*(?:\n|$)",
+        re.MULTILINE | re.DOTALL,
+    )
+    # Keep shared text in both versions so comments spanning a conflict remain
+    # comments, while a malformed comment on one side cannot mask the other.
+    return any(
+        re.search(
+            r"^\s*module(?:\s|$)",
+            code_view(conflict.sub(lambda match: match[side], source)),
+            re.MULTILINE,
+        )
+        for side in ("ours", "theirs")
+    )
+
+
 def render_index(root: Path) -> str:
     """Regenerate the ``mk_all`` index from the Lean files on disk."""
     pool = root / "LeanPool"
@@ -49,10 +69,8 @@ def render_index(root: Path) -> str:
         for path in pool.rglob("*.lean")
     )
     index = root / INDEX
-    existing = code_view(index.read_text()) if index.exists() else ""
-    # During a rebase the index may still contain conflict markers. Preserve
-    # module style if either side has adopted it, matching mk_all's output.
-    uses_modules = re.search(r"^\s*module(?:\s|$)", existing, re.MULTILINE)
+    existing = index.read_text(encoding="utf-8") if index.exists() else ""
+    uses_modules = _uses_module_system(existing)
     header = "module  -- shake: keep-all --deprecated_module: ignore\n\n"
     prefix = "public " if uses_modules else ""
     return (header if uses_modules else "") + "".join(
