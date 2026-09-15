@@ -1094,7 +1094,7 @@ theorem ANR_polynomial_method (h : MvPolynomial (Fin (k + 1)) (ZMod p))
     (c : Fin (k + 1) → ℕ)
     (hA : ∀ i, (A i).card = c i + 1)
     (m : ℕ) (hm : m + h.totalDegree = ∑ i, c i)
-    (h_coeff : coeff ((∑ i : Fin (k + 1), MvPolynomial.X i) ^ m * h)
+    (h_coeff : AddMonoidAlgebra.coeff ((∑ i : Fin (k + 1), MvPolynomial.X i) ^ m * h)
       (Finsupp.equivFunOnFinite.symm c) ≠ 0) :
     let S : Finset (ZMod p) :=
       (Fintype.piFinset A).filter (fun f => h.eval f ≠ 0) |>.image (fun f => ∑ i, f i)
