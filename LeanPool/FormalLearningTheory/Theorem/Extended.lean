@@ -487,7 +487,8 @@ private lemma adviceBadVal_measurable {X : Type u} [MeasurableSpace X]
         exact measurableSet_eq_fun h_eval_j h_c_j
       · exact measurable_const
       · exact measurable_const
-  exact (h_trueR.sub h_empR).abs measurableSet_Ici
+  simpa only [Real.norm_eq_abs, Pi.sub_apply, Set.preimage, Set.mem_Ici] using
+    (h_trueR.sub h_empR).norm measurableSet_Ici
 
 private theorem adviceGoodPair_subset_success {X : Type u} [MeasurableSpace X]
     {A : Type*} [Fintype A] [Nonempty A]

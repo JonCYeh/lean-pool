@@ -486,11 +486,20 @@ instance residue_field_instFiniteDimensional {K L : Type*} [Field K] [NumberFiel
     [P lies_over p] : FiniteDimensional ((𝓞 K) ⧸ p) ((𝓞 L) ⧸ P) :=
   Module.Finite.of_restrictScalars_finite (𝓞 K) ((𝓞 K) ⧸ p) ((𝓞 L) ⧸ P)
 
+/-- A quotient by any ideal lying over a maximal ideal has positive dimension, even when the
+ideal upstairs is not prime. This retains the generality of the former quotient-based inertia
+degree. -/
+theorem quotient_finrank_pos_of_lies_over {K L : Type*} [Field K] [NumberField K]
+    [Field L] [NumberField L] [Algebra K L] (p : Ideal (𝓞 K)) (P : Ideal (𝓞 L))
+    [p.IsMaximal] [P lies_over p] : 0 < Module.finrank ((𝓞 K) ⧸ p) ((𝓞 L) ⧸ P) := by
+  let : Nontrivial ((𝓞 L) ⧸ P) := Ideal.Quotient.nontrivial_of_liesOver_of_isPrime P p
+  exact Module.finrank_pos
+
 theorem inertiaDeg_pos {K L : Type*} [Field K] [NumberField K] [Field L] [NumberField L]
     [Algebra K L] (p : Ideal (𝓞 K)) (P : Ideal (𝓞 L)) [p.IsMaximal] [P.IsMaximal]
     [P lies_over p] : P.inertiaDeg (𝓞 K) > 0 := by
   rw [Ideal.inertiaDeg_eq_of_isMaximal p P]
-  exact Module.finrank_pos
+  exact quotient_finrank_pos_of_lies_over p P
 
 
 -- Hilbert's Ramification Theory
@@ -695,9 +704,11 @@ def residueFieldGalAlgEquiv {P : Ideal (𝓞 L)} [P lies_over p] {Q : Ideal (�
     exact congrArg (Ideal.Quotient.mk Q) (AlgEquiv.commutes (GalAlgEquiv σ) x)
 }
 
+omit [p.IsMaximal] in
 /-- In the case of Galois extension, all the `inertiaDeg` are the same. -/
 theorem inertiaDeg_eq_of_isGalois (Q : Ideal (𝓞 L)) [Q.IsMaximal] [Q lies_over p] [IsGalois K L] :
     P.inertiaDeg (𝓞 K) = Q.inertiaDeg (𝓞 K) := by
+  let : p.IsMaximal := Ideal.IsMaximal.of_isMaximal_liesOver P p
   rcases IsMaximal_conjugates p P Q with ⟨σ, hs⟩
   rw [inertiaDeg_eq_of_isMaximal p P, inertiaDeg_eq_of_isMaximal p Q]
   exact LinearEquiv.finrank_eq (residueFieldGalAlgEquiv p hs).toLinearEquiv
