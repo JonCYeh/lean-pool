@@ -613,6 +613,7 @@ theorem sourceCore_inter_outer_vertices {x : Plane}
 
 /-- Fresh abstract edge names for the finite straight-line inner overlay. -/
 structure LocalOverlayRelabeling (p : Plane) (s epsilon : ℝ) (extra : List Plane) where
+  /-- Fresh cell names for the local-grid overlay. -/
   name : Piece → γ
   name_inj : InjOn name E(Q.localOverlay p s epsilon extra)
   name_fresh : ∀ R ∈ E(Q.localOverlay p s epsilon extra), name R ∉ P.str.cells

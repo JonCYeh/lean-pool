@@ -79,7 +79,6 @@ holding the anchored form.
   the *strong* form of
   `def:admissible-graph` on both sides, which the initial pair does satisfy
   (`rem:intermediate-disconnection` waives it only at intermediate stages).
-* `Schoenflies.IsArcBetween.closure_diff` — general; belongs in `Schoenflies/Subarc.lean`.
 -/
 
 open Metric Set Topology unitInterval
@@ -88,24 +87,6 @@ open scoped Graph
 namespace Schoenflies
 
 open Graph
-
-/-! ### An arc is the closure of its interior
-
-General, and stated nowhere on `main`: `Schoenflies/Subarc.lean` has the two endpoint lemmas and
-`IsArcBetween.isConnected_diff`, but not the closure identity itself. The integrator should hoist
-this next to `IsArcBetween.right_mem_closure_diff`. -/
-
-/-- **An arc is the closure of its interior.** The arc is compact, hence closed, so the closure
-of the interior is inside it; conversely the interior is inside its own closure and each of the
-two endpoints is a limit of it. -/
-theorem IsArcBetween.closure_diff {A : Set Plane} {p q : Plane} (h : IsArcBetween A p q) :
-    closure (A \ {p, q}) = A := by
-  refine Subset.antisymm (h.isArc.isClosed.closure_subset_iff.2 sdiff_subset) fun z hz => ?_
-  by_cases hzp : z = p
-  · exact hzp ▸ h.left_mem_closure_diff
-  by_cases hzq : z = q
-  · exact hzq ▸ h.right_mem_closure_diff
-  exact subset_closure ⟨hz, by rintro (rfl | rfl) <;> simp_all⟩
 
 /-! ### The cells of the initial structure, and `≼_abs`
 

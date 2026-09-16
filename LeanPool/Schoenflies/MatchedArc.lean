@@ -129,7 +129,9 @@ theorem IsArcBetween.isPolygonal_of_subset_arc {A C : Set Plane} {p q r s : Plan
 total functions because that is the shape needed by the split constructor; all inverse and
 continuity assertions are restricted to the two arc carriers. -/
 structure ArcHomeo (A B : Set Plane) (a b c d : Plane) where
+  /-- Forward map, with continuity and inverse laws restricted to the arcs. -/
   toFun : Plane → Plane
+  /-- Inverse map on the target arc. -/
   invFun : Plane → Plane
   continuousOn_toFun : ContinuousOn toFun A
   continuousOn_invFun : ContinuousOn invFun B

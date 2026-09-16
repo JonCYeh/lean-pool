@@ -253,6 +253,199 @@ open Plane
 
 /-! ### The separation proof -/
 
+/-- A chord and an exterior detour across the two arcs force a planar `K(3,3)`
+configuration if the complement were connected. -/
+theorem not_isPreconnected_of_arc_chord_detour
+    {C C₁ C₂ L₅ : Set Plane} {p₁ p₂ a b : Plane}
+    (hCopen : IsOpen Cᶜ) (harc₁ : IsArcBetween C₁ p₁ p₂)
+    (harc₂ : IsArcBetween C₂ p₁ p₂) (hL₅arc : IsArcBetween L₅ p₁ p₂)
+    (hcover : C₁ ∪ C₂ = C) (hCmeet : C₁ ∩ C₂ = {p₁, p₂})
+    (haC₁ : a ∈ C₁) (hbC₂ : b ∈ C₂)
+    (ha_ne : a ≠ p₁ ∧ a ≠ p₂) (hb_ne : b ≠ p₁ ∧ b ≠ p₂) (hab_ne : a ≠ b)
+    (hopenSeg : ∀ z ∈ openSegment ℝ a b, z ∉ C)
+    (hL₅C : ∀ z ∈ L₅, z ∈ C → z = p₁ ∨ z = p₂)
+    (hL₅L₄ : ∀ z ∈ L₅, z ∉ segment ℝ a b) : ¬ IsPreconnected Cᶜ := by
+  intro hconn
+  have hC₁sub : C₁ ⊆ C := by rw [← hcover]; exact subset_union_left
+  have hC₂sub : C₂ ⊆ C := by rw [← hcover]; exact subset_union_right
+  have hp₁C : p₁ ∈ C := hC₁sub harc₁.left_mem
+  have hp₂C : p₂ ∈ C := hC₁sub harc₁.right_mem
+  have hp₁p₂ : p₁ ≠ p₂ := harc₁.ne
+  have hsegC : ∀ z ∈ segment ℝ a b, z ∈ C → z = a ∨ z = b := by
+    intro z hz hzC
+    rw [← insert_endpoints_openSegment] at hz
+    rcases hz with rfl | rfl | hz
+    · exact Or.inl rfl
+    · exact Or.inr rfl
+    · exact absurd hzC (hopenSeg z hz)
+  -- ## Interior points of the two crossings
+  obtain ⟨d, hdL₅, hdp₁, hdp₂⟩ : ∃ d ∈ L₅, d ≠ p₁ ∧ d ≠ p₂ := by
+    obtain ⟨g, -, hgi, hgim, hg0, hg1⟩ := hL₅arc
+    have hhalf : (1 / 2 : ℝ) ∈ I := ⟨by norm_num, by norm_num⟩
+    refine ⟨g (1 / 2), by rw [← hgim]; exact mem_image_of_mem g hhalf, ?_, ?_⟩
+    · rw [← hg0]; intro hcon; have := hgi hhalf zero_mem_I hcon; norm_num at this
+    · rw [← hg1]; intro hcon; have := hgi hhalf one_mem_I hcon; norm_num at this
+  obtain ⟨cpt, hcptOpen⟩ : ∃ c : Plane, c ∈ openSegment ℝ a b :=
+    ⟨_, ⟨2⁻¹, 2⁻¹, by norm_num, by norm_num, by norm_num, rfl⟩⟩
+  have hcptSeg : cpt ∈ segment ℝ a b := openSegment_subset_segment ℝ a b hcptOpen
+  have hcptCc : cpt ∈ Cᶜ := hopenSeg cpt hcptOpen
+  have hdCc : d ∈ Cᶜ := fun hcon => by
+    rcases hL₅C d hdL₅ hcon with h | h
+    exacts [hdp₁ h, hdp₂ h]
+  have hcd : cpt ≠ d := fun h => hL₅L₄ d hdL₅ (h ▸ hcptSeg)
+  -- ## A simple polygonal arc joining them in the complement
+  obtain ⟨R, hRsub, -, hRarc⟩ := exists_simple_arc_of_isPreconnected hCopen hconn hcptCc hdCc hcd
+  obtain ⟨f, hfc, hfi, hfim, hf0, hf1⟩ := hRarc
+  have hL₄closed : IsClosed (segment ℝ a b) := (isCompact_segment a b).isClosed
+  have hL₅closed : IsClosed L₅ := hL₅arc.isArc.isClosed
+  -- The last parameter at which the arc is on the closest-pair segment ...
+  obtain ⟨sp, hspI, hspSeg, hspmax⟩ :
+      ∃ s ∈ I, f s ∈ segment ℝ a b ∧ ∀ t ∈ I, f t ∈ segment ℝ a b → t ≤ s := by
+    have hcl : IsClosed (I ∩ f ⁻¹' segment ℝ a b) :=
+      hfc.preimage_isClosed_of_isClosed isClosed_Icc hL₄closed
+    have h0 : (0 : ℝ) ∈ I ∩ f ⁻¹' segment ℝ a b :=
+      ⟨zero_mem_I, by rw [mem_preimage, hf0]; exact hcptSeg⟩
+    have hbdd : BddAbove (I ∩ f ⁻¹' segment ℝ a b) := ⟨1, fun t ht => ht.1.2⟩
+    obtain ⟨h1, h2⟩ := hcl.csSup_mem ⟨0, h0⟩ hbdd
+    exact ⟨_, h1, h2, fun t ht hmem => le_csSup hbdd ⟨ht, hmem⟩⟩
+  -- ... and the first parameter after it at which the arc is on the detour.
+  obtain ⟨tp, htpmem, htpL₅, htpmin⟩ :
+      ∃ t ∈ Icc sp 1, f t ∈ L₅ ∧ ∀ r ∈ Icc sp 1, f r ∈ L₅ → t ≤ r := by
+    have hcl : IsClosed (Icc sp 1 ∩ f ⁻¹' L₅) :=
+      (hfc.mono (Icc_subset_Icc hspI.1 le_rfl)).preimage_isClosed_of_isClosed isClosed_Icc hL₅closed
+    have h1mem : (1 : ℝ) ∈ Icc sp 1 ∩ f ⁻¹' L₅ :=
+      ⟨⟨hspI.2, le_rfl⟩, by rw [mem_preimage, hf1]; exact hdL₅⟩
+    have hbdd : BddBelow (Icc sp 1 ∩ f ⁻¹' L₅) := ⟨sp, fun t ht => ht.1.1⟩
+    obtain ⟨h1, h2⟩ := hcl.csInf_mem ⟨1, h1mem⟩ hbdd
+    exact ⟨_, h1, h2, fun r hr hmem => csInf_le hbdd ⟨hr, hmem⟩⟩
+  have htpI : tp ∈ I := ⟨hspI.1.trans htpmem.1, htpmem.2⟩
+  have hsptp : sp ≠ tp := fun hcon => hL₅L₄ (f tp) htpL₅ (hcon ▸ hspSeg)
+  -- ## The last branch arc: the piece of `R` between those two parameters
+  obtain ⟨L₆, hL₆arc, hL₆C, hL₆L₄, hL₆L₅⟩ :
+      ∃ L₆, IsArcBetween L₆ (f sp) (f tp) ∧ (∀ z ∈ L₆, z ∉ C) ∧
+        (∀ z ∈ L₆, z ∈ segment ℝ a b → z = f sp) ∧ (∀ z ∈ L₆, z ∈ L₅ → z = f tp) := by
+    refine ⟨f '' Icc sp tp, ?_, ?_, ?_, ?_⟩
+    · have := isArcBetween_subarc_of_injOn_I hfc hfi hspI htpI hsptp
+      rwa [uIcc_of_le (lt_of_le_of_ne htpmem.1 hsptp).le] at this
+    · rintro _ ⟨r, hr, rfl⟩
+      exact hRsub (by rw [← hfim]; exact mem_image_of_mem f ⟨hspI.1.trans hr.1, hr.2.trans htpI.2⟩)
+    · rintro _ ⟨r, hr, rfl⟩ hmem
+      rw [le_antisymm (hspmax r ⟨hspI.1.trans hr.1, hr.2.trans htpI.2⟩ hmem) hr.1]
+    · rintro _ ⟨r, hr, rfl⟩ hmem
+      rw [le_antisymm hr.2 (htpmin r ⟨hr.1, hr.2.trans htpI.2⟩ hmem)]
+  have hcpC : f sp ∉ C := hL₆C _ hL₆arc.left_mem
+  have hdpC : f tp ∉ C := hL₆C _ hL₆arc.right_mem
+  -- ## The six branch vertices are six distinct points
+  have hp₁a : p₁ ≠ a := fun h => ha_ne.1 h.symm
+  have hp₁b : p₁ ≠ b := fun h => hb_ne.1 h.symm
+  have hp₂a : p₂ ≠ a := fun h => ha_ne.2 h.symm
+  have hp₂b : p₂ ≠ b := fun h => hb_ne.2 h.symm
+  have hp₁dp : p₁ ≠ f tp := fun h => hdpC (h ▸ hp₁C)
+  have hp₂dp : p₂ ≠ f tp := fun h => hdpC (h ▸ hp₂C)
+  have hp₁cp : p₁ ≠ f sp := fun h => hcpC (h ▸ hp₁C)
+  have hp₂cp : p₂ ≠ f sp := fun h => hcpC (h ▸ hp₂C)
+  have hcpa : f sp ≠ a := fun h => hcpC (h ▸ hC₁sub haC₁)
+  have hcpb : f sp ≠ b := fun h => hcpC (h ▸ hC₂sub hbC₂)
+  have hdpa : f tp ≠ a := fun h => hdpC (h ▸ hC₁sub haC₁)
+  have hdpb : f tp ≠ b := fun h => hdpC (h ▸ hC₂sub hbC₂)
+  have hcpdp : f sp ≠ f tp := fun h => hL₅L₄ (f tp) htpL₅ (h ▸ hspSeg)
+  -- ## Cutting the four branches
+  obtain ⟨A₁, A₂, hA₁, hA₂, hAcov, hAmeet⟩ :=
+    harc₁.exists_split haC₁ ha_ne.1 ha_ne.2
+  obtain ⟨B₁, B₂, hB₁, hB₂, hBcov, hBmeet⟩ :=
+    harc₂.exists_split hbC₂ hb_ne.1 hb_ne.2
+  obtain ⟨E₁, E₂, hE₁, hE₂, hEcov, hEmeet⟩ := hL₅arc.exists_split htpL₅ hp₁dp.symm hp₂dp.symm
+  obtain ⟨D₁, D₂, hD₁, hD₂, hDcov, hDmeet⟩ :=
+    (isArcBetween_segment hab_ne).exists_split hspSeg hcpa hcpb
+  have hA₁sub : A₁ ⊆ C₁ := by rw [← hAcov]; exact subset_union_left
+  have hA₂sub : A₂ ⊆ C₁ := by rw [← hAcov]; exact subset_union_right
+  have hB₁sub : B₁ ⊆ C₂ := by rw [← hBcov]; exact subset_union_left
+  have hB₂sub : B₂ ⊆ C₂ := by rw [← hBcov]; exact subset_union_right
+  have hE₁sub : E₁ ⊆ L₅ := by rw [← hEcov]; exact subset_union_left
+  have hE₂sub : E₂ ⊆ L₅ := by rw [← hEcov]; exact subset_union_right
+  have hD₁sub : D₁ ⊆ segment ℝ a b := by rw [← hDcov]; exact subset_union_left
+  have hD₂sub : D₂ ⊆ segment ℝ a b := by rw [← hDcov]; exact subset_union_right
+  -- ## The remaining pairwise intersections
+  have hbC₁ : b ∉ C₁ := by
+    intro hcon
+    have hmem : b ∈ C₁ ∩ C₂ := ⟨hcon, hbC₂⟩
+    rw [hCmeet] at hmem
+    rcases hmem with h | h
+    exacts [hb_ne.1 h, hb_ne.2 h]
+  have haC₂ : a ∉ C₂ := by
+    intro hcon
+    have hmem : a ∈ C₁ ∩ C₂ := ⟨haC₁, hcon⟩
+    rw [hCmeet] at hmem
+    rcases hmem with h | h
+    exacts [ha_ne.1 h, ha_ne.2 h]
+  have hC₁L₄ : ∀ z ∈ C₁, z ∈ segment ℝ a b → z = a := by
+    intro z h1 h2
+    rcases hsegC z h2 (hC₁sub h1) with h | h
+    exacts [h, absurd (h ▸ h1) hbC₁]
+  have hC₂L₄ : ∀ z ∈ C₂, z ∈ segment ℝ a b → z = b := by
+    intro z h1 h2
+    rcases hsegC z h2 (hC₂sub h1) with h | h
+    exacts [absurd (h ▸ h1) haC₂, h]
+  -- ## The configuration is a subdivision of `K(3,3)`, which the plane cannot carry
+  -- The bipartition is `{p₁, p₂, c'}` against `{a, b, d'}`, with `c' = f sp` and `d' = f tp`.
+  -- Row `i`, column `j` of `P` is the branch path from the `i`-th point of the first side to
+  -- the `j`-th point of the second: the halves of `C₁`, `C₂` and `L₅` in rows `0` and `1`, the
+  -- two halves of the chord `L₄` and the connecting arc `L₆` in row `2`.
+  refine (Graph.isArcK33_of_pieces (x := ![p₁, p₂, f sp]) (y := ![a, b, f tp])
+    (P := ![![A₁, B₁, E₁], ![A₂, B₂, E₂], ![D₁, D₂, L₆]])
+    (Ch := ![C₁, C₂, L₅]) (Sg := ![segment ℝ a b, segment ℝ a b, L₆])
+    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_).elim
+  · intro r c
+    fin_cases r <;> fin_cases c
+    exacts [hA₁, hB₁, hE₁, hA₂.reverse, hB₂.reverse, hE₂.reverse, hD₁.reverse, hD₂, hL₆arc]
+  · exact injective_three hp₁p₂ hp₁cp hp₂cp
+  · exact injective_three hab_ne hdpa.symm hdpb.symm
+  · intro r c
+    fin_cases r <;> fin_cases c
+    exacts [hp₁a, hp₁b, hp₁dp, hp₂a, hp₂b, hp₂dp, hcpa, hcpb, hcpdp]
+  · intro c; fin_cases c
+    exacts [hA₁sub, hB₁sub, hE₁sub]
+  · intro c; fin_cases c
+    exacts [hA₂sub, hB₂sub, hE₂sub]
+  · intro c; fin_cases c
+    exacts [hD₁sub, hD₂sub, subset_rfl]
+  · intro c; fin_cases c
+    exacts [hAmeet.subset, hBmeet.subset, hEmeet.subset]
+  · intro c e hne
+    fin_cases c <;> fin_cases e
+    · exact absurd rfl hne
+    · exact hCmeet.subset
+    · rintro z ⟨h1, h2⟩; exact hL₅C z h2 (hC₁sub h1)
+    · rintro z ⟨h1, h2⟩; exact hCmeet.subset ⟨h2, h1⟩
+    · exact absurd rfl hne
+    · rintro z ⟨h1, h2⟩; exact hL₅C z h2 (hC₂sub h1)
+    · rintro z ⟨h1, h2⟩; exact hL₅C z h1 (hC₁sub h2)
+    · rintro z ⟨h1, h2⟩; exact hL₅C z h1 (hC₂sub h2)
+    · exact absurd rfl hne
+  · intro c e
+    fin_cases c <;> fin_cases e
+    · rintro z ⟨h1, h2⟩; exact hC₁L₄ z h1 h2
+    · rintro z ⟨h1, h2⟩; exact hC₁L₄ z h1 h2
+    · rintro z ⟨h1, h2⟩; exact absurd (hC₁sub h1) (hL₆C z h2)
+    · rintro z ⟨h1, h2⟩; exact hC₂L₄ z h1 h2
+    · rintro z ⟨h1, h2⟩; exact hC₂L₄ z h1 h2
+    · rintro z ⟨h1, h2⟩; exact absurd (hC₂sub h1) (hL₆C z h2)
+    · rintro z ⟨h1, h2⟩; exact absurd h2 (hL₅L₄ z h1)
+    · rintro z ⟨h1, h2⟩; exact absurd h2 (hL₅L₄ z h1)
+    · rintro z ⟨h1, h2⟩; exact hL₆L₅ z h2 h1
+  · intro c e hne
+    fin_cases c <;> fin_cases e
+    · exact absurd rfl hne
+    · exact hDmeet.subset
+    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h2 (hD₁sub h1)
+    · rintro z ⟨h1, h2⟩; exact hDmeet.subset ⟨h2, h1⟩
+    · exact absurd rfl hne
+    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h2 (hD₂sub h1)
+    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h1 (hD₁sub h2)
+    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h1 (hD₂sub h2)
+    · exact absurd rfl hne
+
+
 /-- **Proposition 3.2 (a Jordan curve separates)**, with the coordinate direction named.
 
 `i` is the blueprint's horizontal direction and `j` its vertical one; the hypothesis on `u`
@@ -349,13 +542,6 @@ theorem not_isPreconnected_compl_of_coord {C : Set Plane} (hC : IsJordanCurve C)
     · exact absurd (hminab z ⟨h, hzi⟩ b ⟨hbC₂, hbi⟩)
         (not_le.mpr (by rw [dist_comm z b, dist_comm a b]; exact hgt))
     · exact absurd (hminab a ⟨haC₁, hai⟩ z ⟨h, hzi⟩) (not_le.mpr hlt)
-  have hsegC : ∀ z ∈ segment ℝ a b, z ∈ C → z = a ∨ z = b := by
-    intro z hz hzC
-    rw [← insert_endpoints_openSegment] at hz
-    rcases hz with rfl | rfl | hz
-    · exact Or.inl rfl
-    · exact Or.inr rfl
-    · exact absurd hzC (hopenSeg z hz)
   -- ## The detour above the curve
   obtain ⟨z₃, hz₃C, hz₃max⟩ := hCcomp.exists_isMaxOn hCne (continuous_coord j).continuousOn
   set top : ℝ := z₃ j + 1 with htop
@@ -404,172 +590,8 @@ theorem not_isPreconnected_compl_of_coord {C : Set Plane} (hC : IsJordanCurve C)
     exact ⟨poly ws, hsub, harc⟩
   have hL₅C : ∀ z ∈ L₅, z ∈ C → z = p₁ ∨ z = p₂ := fun z hz => hWsubC z (hL₅sub hz)
   have hL₅L₄ : ∀ z ∈ L₅, z ∉ segment ℝ a b := fun z hz => hWL₄ z (hL₅sub hz)
-  -- ## Interior points of the two crossings
-  obtain ⟨d, hdL₅, hdp₁, hdp₂⟩ : ∃ d ∈ L₅, d ≠ p₁ ∧ d ≠ p₂ := by
-    obtain ⟨g, -, hgi, hgim, hg0, hg1⟩ := hL₅arc
-    have hhalf : (1 / 2 : ℝ) ∈ I := ⟨by norm_num, by norm_num⟩
-    refine ⟨g (1 / 2), by rw [← hgim]; exact mem_image_of_mem g hhalf, ?_, ?_⟩
-    · rw [← hg0]; intro hcon; have := hgi hhalf zero_mem_I hcon; norm_num at this
-    · rw [← hg1]; intro hcon; have := hgi hhalf one_mem_I hcon; norm_num at this
-  obtain ⟨cpt, hcptOpen⟩ : ∃ c : Plane, c ∈ openSegment ℝ a b :=
-    ⟨_, ⟨2⁻¹, 2⁻¹, by norm_num, by norm_num, by norm_num, rfl⟩⟩
-  have hcptSeg : cpt ∈ segment ℝ a b := openSegment_subset_segment ℝ a b hcptOpen
-  have hcptCc : cpt ∈ Cᶜ := hopenSeg cpt hcptOpen
-  have hdCc : d ∈ Cᶜ := fun hcon => by
-    rcases hL₅C d hdL₅ hcon with h | h
-    exacts [hdp₁ h, hdp₂ h]
-  have hcd : cpt ≠ d := fun h => hL₅L₄ d hdL₅ (h ▸ hcptSeg)
-  -- ## A simple polygonal arc joining them in the complement
-  obtain ⟨R, hRsub, -, hRarc⟩ := exists_simple_arc_of_isPreconnected hCopen hconn hcptCc hdCc hcd
-  obtain ⟨f, hfc, hfi, hfim, hf0, hf1⟩ := hRarc
-  have hL₄closed : IsClosed (segment ℝ a b) := (isCompact_segment a b).isClosed
-  have hL₅closed : IsClosed L₅ := hL₅arc.isArc.isClosed
-  -- The last parameter at which the arc is on the closest-pair segment ...
-  obtain ⟨sp, hspI, hspSeg, hspmax⟩ :
-      ∃ s ∈ I, f s ∈ segment ℝ a b ∧ ∀ t ∈ I, f t ∈ segment ℝ a b → t ≤ s := by
-    have hcl : IsClosed (I ∩ f ⁻¹' segment ℝ a b) :=
-      hfc.preimage_isClosed_of_isClosed isClosed_Icc hL₄closed
-    have h0 : (0 : ℝ) ∈ I ∩ f ⁻¹' segment ℝ a b :=
-      ⟨zero_mem_I, by rw [mem_preimage, hf0]; exact hcptSeg⟩
-    have hbdd : BddAbove (I ∩ f ⁻¹' segment ℝ a b) := ⟨1, fun t ht => ht.1.2⟩
-    obtain ⟨h1, h2⟩ := hcl.csSup_mem ⟨0, h0⟩ hbdd
-    exact ⟨_, h1, h2, fun t ht hmem => le_csSup hbdd ⟨ht, hmem⟩⟩
-  -- ... and the first parameter after it at which the arc is on the detour.
-  obtain ⟨tp, htpmem, htpL₅, htpmin⟩ :
-      ∃ t ∈ Icc sp 1, f t ∈ L₅ ∧ ∀ r ∈ Icc sp 1, f r ∈ L₅ → t ≤ r := by
-    have hcl : IsClosed (Icc sp 1 ∩ f ⁻¹' L₅) :=
-      (hfc.mono (Icc_subset_Icc hspI.1 le_rfl)).preimage_isClosed_of_isClosed isClosed_Icc hL₅closed
-    have h1mem : (1 : ℝ) ∈ Icc sp 1 ∩ f ⁻¹' L₅ :=
-      ⟨⟨hspI.2, le_rfl⟩, by rw [mem_preimage, hf1]; exact hdL₅⟩
-    have hbdd : BddBelow (Icc sp 1 ∩ f ⁻¹' L₅) := ⟨sp, fun t ht => ht.1.1⟩
-    obtain ⟨h1, h2⟩ := hcl.csInf_mem ⟨1, h1mem⟩ hbdd
-    exact ⟨_, h1, h2, fun r hr hmem => csInf_le hbdd ⟨hr, hmem⟩⟩
-  have htpI : tp ∈ I := ⟨hspI.1.trans htpmem.1, htpmem.2⟩
-  have hsptp : sp ≠ tp := fun hcon => hL₅L₄ (f tp) htpL₅ (hcon ▸ hspSeg)
-  -- ## The last branch arc: the piece of `R` between those two parameters
-  obtain ⟨L₆, hL₆arc, hL₆C, hL₆L₄, hL₆L₅⟩ :
-      ∃ L₆, IsArcBetween L₆ (f sp) (f tp) ∧ (∀ z ∈ L₆, z ∉ C) ∧
-        (∀ z ∈ L₆, z ∈ segment ℝ a b → z = f sp) ∧ (∀ z ∈ L₆, z ∈ L₅ → z = f tp) := by
-    refine ⟨f '' Icc sp tp, ?_, ?_, ?_, ?_⟩
-    · have := isArcBetween_subarc_of_injOn_I hfc hfi hspI htpI hsptp
-      rwa [uIcc_of_le (lt_of_le_of_ne htpmem.1 hsptp).le] at this
-    · rintro _ ⟨r, hr, rfl⟩
-      exact hRsub (by rw [← hfim]; exact mem_image_of_mem f ⟨hspI.1.trans hr.1, hr.2.trans htpI.2⟩)
-    · rintro _ ⟨r, hr, rfl⟩ hmem
-      rw [le_antisymm (hspmax r ⟨hspI.1.trans hr.1, hr.2.trans htpI.2⟩ hmem) hr.1]
-    · rintro _ ⟨r, hr, rfl⟩ hmem
-      rw [le_antisymm hr.2 (htpmin r ⟨hr.1, hr.2.trans htpI.2⟩ hmem)]
-  have hcpC : f sp ∉ C := hL₆C _ hL₆arc.left_mem
-  have hdpC : f tp ∉ C := hL₆C _ hL₆arc.right_mem
-  -- ## The six branch vertices are six distinct points
-  have hp₁a : p₁ ≠ a := fun h => (hne_mid a hai).1 h.symm
-  have hp₁b : p₁ ≠ b := fun h => (hne_mid b hbi).1 h.symm
-  have hp₂a : p₂ ≠ a := fun h => (hne_mid a hai).2 h.symm
-  have hp₂b : p₂ ≠ b := fun h => (hne_mid b hbi).2 h.symm
-  have hp₁dp : p₁ ≠ f tp := fun h => hdpC (h ▸ hp₁C)
-  have hp₂dp : p₂ ≠ f tp := fun h => hdpC (h ▸ hp₂C)
-  have hp₁cp : p₁ ≠ f sp := fun h => hcpC (h ▸ hp₁C)
-  have hp₂cp : p₂ ≠ f sp := fun h => hcpC (h ▸ hp₂C)
-  have hcpa : f sp ≠ a := fun h => hcpC (h ▸ hC₁sub haC₁)
-  have hcpb : f sp ≠ b := fun h => hcpC (h ▸ hC₂sub hbC₂)
-  have hdpa : f tp ≠ a := fun h => hdpC (h ▸ hC₁sub haC₁)
-  have hdpb : f tp ≠ b := fun h => hdpC (h ▸ hC₂sub hbC₂)
-  have hcpdp : f sp ≠ f tp := fun h => hL₅L₄ (f tp) htpL₅ (h ▸ hspSeg)
-  -- ## Cutting the four branches
-  obtain ⟨A₁, A₂, hA₁, hA₂, hAcov, hAmeet⟩ :=
-    harc₁.exists_split haC₁ (hne_mid a hai).1 (hne_mid a hai).2
-  obtain ⟨B₁, B₂, hB₁, hB₂, hBcov, hBmeet⟩ :=
-    harc₂.exists_split hbC₂ (hne_mid b hbi).1 (hne_mid b hbi).2
-  obtain ⟨E₁, E₂, hE₁, hE₂, hEcov, hEmeet⟩ := hL₅arc.exists_split htpL₅ hp₁dp.symm hp₂dp.symm
-  obtain ⟨D₁, D₂, hD₁, hD₂, hDcov, hDmeet⟩ :=
-    (isArcBetween_segment hab_ne).exists_split hspSeg hcpa hcpb
-  have hA₁sub : A₁ ⊆ C₁ := by rw [← hAcov]; exact subset_union_left
-  have hA₂sub : A₂ ⊆ C₁ := by rw [← hAcov]; exact subset_union_right
-  have hB₁sub : B₁ ⊆ C₂ := by rw [← hBcov]; exact subset_union_left
-  have hB₂sub : B₂ ⊆ C₂ := by rw [← hBcov]; exact subset_union_right
-  have hE₁sub : E₁ ⊆ L₅ := by rw [← hEcov]; exact subset_union_left
-  have hE₂sub : E₂ ⊆ L₅ := by rw [← hEcov]; exact subset_union_right
-  have hD₁sub : D₁ ⊆ segment ℝ a b := by rw [← hDcov]; exact subset_union_left
-  have hD₂sub : D₂ ⊆ segment ℝ a b := by rw [← hDcov]; exact subset_union_right
-  -- ## The remaining pairwise intersections
-  have hbC₁ : b ∉ C₁ := by
-    intro hcon
-    have hmem : b ∈ C₁ ∩ C₂ := ⟨hcon, hbC₂⟩
-    rw [hCmeet] at hmem
-    rcases hmem with h | h
-    exacts [(hne_mid b hbi).1 h, (hne_mid b hbi).2 h]
-  have haC₂ : a ∉ C₂ := by
-    intro hcon
-    have hmem : a ∈ C₁ ∩ C₂ := ⟨haC₁, hcon⟩
-    rw [hCmeet] at hmem
-    rcases hmem with h | h
-    exacts [(hne_mid a hai).1 h, (hne_mid a hai).2 h]
-  have hC₁L₄ : ∀ z ∈ C₁, z ∈ segment ℝ a b → z = a := by
-    intro z h1 h2
-    rcases hsegC z h2 (hC₁sub h1) with h | h
-    exacts [h, absurd (h ▸ h1) hbC₁]
-  have hC₂L₄ : ∀ z ∈ C₂, z ∈ segment ℝ a b → z = b := by
-    intro z h1 h2
-    rcases hsegC z h2 (hC₂sub h1) with h | h
-    exacts [absurd (h ▸ h1) haC₂, h]
-  -- ## The configuration is a subdivision of `K(3,3)`, which the plane cannot carry
-  -- The bipartition is `{p₁, p₂, c'}` against `{a, b, d'}`, with `c' = f sp` and `d' = f tp`.
-  -- Row `i`, column `j` of `P` is the branch path from the `i`-th point of the first side to
-  -- the `j`-th point of the second: the halves of `C₁`, `C₂` and `L₅` in rows `0` and `1`, the
-  -- two halves of the chord `L₄` and the connecting arc `L₆` in row `2`.
-  refine (Graph.isArcK33_of_pieces (x := ![p₁, p₂, f sp]) (y := ![a, b, f tp])
-    (P := ![![A₁, B₁, E₁], ![A₂, B₂, E₂], ![D₁, D₂, L₆]])
-    (Ch := ![C₁, C₂, L₅]) (Sg := ![segment ℝ a b, segment ℝ a b, L₆])
-    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_).elim
-  · intro r c
-    fin_cases r <;> fin_cases c
-    exacts [hA₁, hB₁, hE₁, hA₂.reverse, hB₂.reverse, hE₂.reverse, hD₁.reverse, hD₂, hL₆arc]
-  · exact injective_three hp₁p₂ hp₁cp hp₂cp
-  · exact injective_three hab_ne hdpa.symm hdpb.symm
-  · intro r c
-    fin_cases r <;> fin_cases c
-    exacts [hp₁a, hp₁b, hp₁dp, hp₂a, hp₂b, hp₂dp, hcpa, hcpb, hcpdp]
-  · intro c; fin_cases c
-    exacts [hA₁sub, hB₁sub, hE₁sub]
-  · intro c; fin_cases c
-    exacts [hA₂sub, hB₂sub, hE₂sub]
-  · intro c; fin_cases c
-    exacts [hD₁sub, hD₂sub, subset_rfl]
-  · intro c; fin_cases c
-    exacts [hAmeet.subset, hBmeet.subset, hEmeet.subset]
-  · intro c e hne
-    fin_cases c <;> fin_cases e
-    · exact absurd rfl hne
-    · exact hCmeet.subset
-    · rintro z ⟨h1, h2⟩; exact hL₅C z h2 (hC₁sub h1)
-    · rintro z ⟨h1, h2⟩; exact hCmeet.subset ⟨h2, h1⟩
-    · exact absurd rfl hne
-    · rintro z ⟨h1, h2⟩; exact hL₅C z h2 (hC₂sub h1)
-    · rintro z ⟨h1, h2⟩; exact hL₅C z h1 (hC₁sub h2)
-    · rintro z ⟨h1, h2⟩; exact hL₅C z h1 (hC₂sub h2)
-    · exact absurd rfl hne
-  · intro c e
-    fin_cases c <;> fin_cases e
-    · rintro z ⟨h1, h2⟩; exact hC₁L₄ z h1 h2
-    · rintro z ⟨h1, h2⟩; exact hC₁L₄ z h1 h2
-    · rintro z ⟨h1, h2⟩; exact absurd (hC₁sub h1) (hL₆C z h2)
-    · rintro z ⟨h1, h2⟩; exact hC₂L₄ z h1 h2
-    · rintro z ⟨h1, h2⟩; exact hC₂L₄ z h1 h2
-    · rintro z ⟨h1, h2⟩; exact absurd (hC₂sub h1) (hL₆C z h2)
-    · rintro z ⟨h1, h2⟩; exact absurd h2 (hL₅L₄ z h1)
-    · rintro z ⟨h1, h2⟩; exact absurd h2 (hL₅L₄ z h1)
-    · rintro z ⟨h1, h2⟩; exact hL₆L₅ z h2 h1
-  · intro c e hne
-    fin_cases c <;> fin_cases e
-    · exact absurd rfl hne
-    · exact hDmeet.subset
-    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h2 (hD₁sub h1)
-    · rintro z ⟨h1, h2⟩; exact hDmeet.subset ⟨h2, h1⟩
-    · exact absurd rfl hne
-    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h2 (hD₂sub h1)
-    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h1 (hD₁sub h2)
-    · rintro z ⟨h1, h2⟩; exact hL₆L₄ z h1 (hD₂sub h2)
-    · exact absurd rfl hne
+  exact not_isPreconnected_of_arc_chord_detour hCopen harc₁ harc₂ hL₅arc hcover hCmeet
+    haC₁ hbC₂ (hne_mid a hai) (hne_mid b hbi) hab_ne hopenSeg hL₅C hL₅L₄ hconn
 
 /-! ### The headline -/
 

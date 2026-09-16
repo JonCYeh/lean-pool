@@ -95,7 +95,7 @@ theorem inner_eq (u v : Plane) : inner ℝ u v = u 0 * v 0 + u 1 * v 1 := by
 @[simp] theorem det_perp_left (u v : Plane) : det (perp u) v = -inner ℝ u v := by
   rw [inner_eq]; simp [det]; ring
 
-@[simp] theorem det_perp_perp (u v : Plane) : det (perp u) (perp v) = det u v := by
+theorem det_perp_perp (u v : Plane) : det (perp u) (perp v) = det u v := by
   simp [det]; ring
 
 @[simp] theorem norm_perp (u : Plane) : ‖perp u‖ = ‖u‖ := by

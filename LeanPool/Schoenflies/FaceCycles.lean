@@ -289,7 +289,6 @@ theorem walkVertices_round : G.walkVertices u (D ++ [e]) = G.walkVertices u D :=
   · exact mem_walkVertices_self
   · exact hc.isPath.target_mem_walkVertices
 
-@[simp]
 theorem cycleGraph_vertexSet : V(G.cycleGraph u e D) = G.walkVertices u D := by
   rw [cycleGraph, pathGraphOf_vertexSet, hc.walkVertices_round]
 

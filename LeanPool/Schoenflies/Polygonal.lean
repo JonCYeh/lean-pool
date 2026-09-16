@@ -35,7 +35,7 @@ theorem IsPolygonal.isCompact {A : Set Plane} (h : IsPolygonal A) : IsCompact A 
   obtain ⟨vs, rfl⟩ := h
   exact isCompact_poly vs
 
-@[simp] theorem poly_pair (a b : Plane) : poly [a, b] = segment ℝ a b := by
+theorem poly_pair (a b : Plane) : poly [a, b] = segment ℝ a b := by
   rw [poly_cons_cons, poly_singleton]
   exact union_eq_self_of_subset_right (singleton_subset_iff.2 (right_mem_segment ℝ a b))
 

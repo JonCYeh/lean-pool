@@ -143,14 +143,3 @@ Main declarations: `Schoenflies.jordan_schoenflies_of_homeomorph`
 Tags: jordan-curve, schoenflies-theorem, geometric-topology, homeomorphism
 MSC: 57K10, 54C25
 -/
-
-/-!
-# Jordan–Schönflies theorem
-
-Source: url:https://github.com/alonamaloh/schoenflies-lean
-Authors: Álvaro Begué
-Status: verified
-Main declarations: `Schoenflies.jordan_schoenflies_of_homeomorph`
-Tags: jordan-curve, schoenflies-theorem, geometric-topology, homeomorphism
-MSC: 57K10, 54C25
--/

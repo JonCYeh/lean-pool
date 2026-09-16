@@ -743,6 +743,21 @@ theorem exists_injective_avoiding [Infinite γ] (used : Set γ) (hused : used.Fi
   intro i j hij
   exact code.injective (supply.injective (Subtype.ext hij))
 
+/-- Extend a finite injection of fresh names to a total function for graph relabelling. -/
+theorem exists_injOn_avoiding [Infinite γ] (used : Set γ) (hused : used.Finite)
+    {s : Set α} (hs : s.Finite) (fallback : γ) :
+    ∃ name : α → γ, InjOn name s ∧ ∀ x ∈ s, name x ∉ used := by
+  classical
+  let _ : Finite s := Set.finite_coe_iff.mpr hs
+  obtain ⟨fresh, hfresh, havoid⟩ := exists_injective_avoiding used hused s
+  let name : α → γ := fun x => if hx : x ∈ s then fresh ⟨x, hx⟩ else fallback
+  have hname {x : α} (hx : x ∈ s) : name x = fresh ⟨x, hx⟩ := by simp [name, hx]
+  refine ⟨name, ?_, fun x hx => by rw [hname hx]; exact havoid ⟨x, hx⟩⟩
+  intro x hx y hy hxy
+  have hsub : (⟨x, hx⟩ : s) = ⟨y, hy⟩ := hfresh (by
+    simpa only [hname hx, hname hy] using hxy)
+  exact congrArg Subtype.val hsub
+
 /-- Extend two prescribed, distinct names to an injection on a finite set, with every other
 value fresh outside a prescribed finite set. -/
 theorem exists_injective_pinned_avoiding [Infinite γ]
@@ -844,9 +859,11 @@ structure EarStepData (T : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
   splitData : T.str.SplitData
   /-- The source positions and edge parametrizations of that abstract ear. -/
   srcPos : γ → Plane
+  /-- Edge parametrizations of the new source ear. -/
   srcDraw : γ → ℝ → Plane
   /-- The target positions and edge parametrizations. -/
   tgtPos : γ → Plane
+  /-- Edge parametrizations of the matched target ear. -/
   tgtDraw : γ → ℝ → Plane
   /-- Both drawings are crosscuts of the corresponding old face. -/
   srcCrosscut : splitData.EarCrosscut T.src srcPos srcDraw
@@ -1036,26 +1053,10 @@ of `H`, not about `H`.
 on. Its geometric core in direction (a) is `Schoenflies.exists_target_crosscut_split` below,
 which is proved here; only the abstract-data bookkeeping around it is assumed.
 
-**`EarStep` carries `[Infinite γ]`, and without it the hypothesis is false.** Every cell of
-every structure in sight is a *name* drawn from the one type `γ`: `V(skel)`, `E(skel)` and
-`faces` are three disjoint subsets of it. An ear insertion consumes fresh names — one per
-interior vertex of the ear, one per ear edge, and two for the 2-cells the split creates
-(`SplitData.edge_fresh`, `.vertex_fresh`, `.face₁_notMem`, `.face₂_notMem`) — while the
-conclusion `IsPartialTransferOf T' P (B ∪ ear) Hdraw par'` forces `T'` to realize a subdivision
-of the enlarged graph, so `V(B ∪ ear) ⊆ V(T'.src.graph) = T'.src.pos '' V(T'.str.skel)` and the
-new skeleton must occupy strictly more of the plane than the old one. On a finite `γ` those
-demands eventually exceed the supply: a structure realizing a subdivision of a 2-connected graph
-with `e` edges needs at least `e` edge names, at least as many vertex names, and at least one
-face name per complementary region, all pairwise distinct inside `γ`. A `γ` large enough to
-carry the transfer of `B` and too small to carry the transfer of `B` with one more ear makes the
-hypotheses of `EarStep` satisfiable and its conclusion unsatisfiable.
-
-That argument is prose, not machine-checked: pinning it down needs a `GeneratedPair` over an
-exactly-exhausted finite `γ`, which is a page of construction for a defect the type class
-removes outright. What *is* machine-checked is that nothing below needs more than `Infinite γ`,
-and the consumer instantiates `γ := ℕ`. The rule that found this is the standing one: a
-hypothesis must be a statement one believes, and `EarStep` without a supply of fresh names is
-not one. -/
+The predicates describe transfer data independently of whether that data exists. Their
+constructors require `[Infinite γ]` to supply fresh cell names. Keeping infinitude on those
+existence theorems, rather than as an unused parameter of the predicates, makes that boundary
+explicit. -/
 
 /-- **Step 1, the common subdivision**, as an interface. -/
 def CommonSubdivision (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
@@ -1070,9 +1071,9 @@ the current subgraph `B`, the ear `D` as a path of `H` between two distinct vert
 the freshness of the ear's interior — which is what makes the ear's interior lie in a single
 current face, since it is connected and disjoint from the current skeleton.
 
-`Infinite γ` is not decoration: the step consumes fresh cell names, and on a finite `γ` the
-statement is false. See the section docstring above. -/
-def EarStep [Infinite γ] (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
+Constructing this step requires a supply of fresh cell names; the existence theorems carry
+`Infinite γ`. -/
+def EarStep (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane) : Prop :=
   ∀ (B : Graph Plane γ) (a b : Plane) (D : List γ), B.IsTwoConnected → B ≤ H →
     H.IsPath a D b → a ≠ b → a ∈ V(B) → b ∈ V(B) →
@@ -1086,7 +1087,7 @@ def EarStep [Infinite γ] (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDo
 edges are genuinely new, produce the explicit split and its two realized crosscuts.  The
 degenerate branch in which the proposed path was already in `B` is handled by
 `earStep_of_data`. -/
-def EarStepConstruction [Infinite γ]
+def EarStepConstruction
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane)
     (_hH : IsSourceExtension P.src srcOuter srcDom H Hdraw) : Prop :=
@@ -1097,10 +1098,14 @@ def EarStepConstruction [Infinite γ]
     ∀ (T : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom) (par : γ → γ),
       IsPartialTransferOf T P B Hdraw par → Nonempty (EarStepData T B H Hdraw a D)
 
+/-- A realized source ear and its compatibility with the ambient path. -/
 structure SourceEarStepData (T : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (B H : Graph Plane γ) (Hdraw : γ → ℝ → Plane) (a : Plane) (D : List γ) where
+  /-- Abstract split introducing the source ear and its two faces. -/
   splitData : T.str.SplitData
+  /-- Positions of the new source vertices. -/
   srcPos : γ → Plane
+  /-- Parametrizations of the new source edges. -/
   srcDraw : γ → ℝ → Plane
   srcCrosscut : splitData.EarCrosscut T.src srcPos srcDraw
   srcEdgePolygonal : ∀ ⦃e⦄, e ∈ E(splitData.ear) → IsPolygonal (Graph.edgeArc srcDraw e)
@@ -1142,36 +1147,12 @@ theorem exists_sourceEarStepData [Infinite γ]
       hQfinV hab
   let newVertices : Set γ := vname '' (V(Q) \ {a, b})
   have hnewVertices_fin : newVertices.Finite := hQfinV.sdiff.image vname
-  have hnewVertices_avoid : Disjoint newVertices T.str.cells := by
-    rw [Set.disjoint_left]
-    rintro z ⟨x, ⟨hxQ, hxab⟩, rfl⟩ hzCell
-    exact vname_fresh x hxQ (fun h => hxab (Or.inl h)) (fun h => hxab (Or.inr h)) hzCell
   let edgeUsed : Set γ := T.str.cells ∪ newVertices
   have hedgeUsed_fin : edgeUsed.Finite := T.str.finite_cells.union hnewVertices_fin
-  let _ : Finite E(Q) := Set.finite_coe_iff.mpr hQfinE
-  obtain ⟨freshEdge, freshEdge_inj, freshEdge_avoid⟩ :=
-    exists_injective_avoiding edgeUsed hedgeUsed_fin E(Q)
-  let ename : γ → γ := fun e => if he : e ∈ E(Q) then freshEdge ⟨e, he⟩ else u
-  have ename_apply {e : γ} (he : e ∈ E(Q)) : ename e = freshEdge ⟨e, he⟩ := by
-    simp [ename, he]
-  have ename_inj : InjOn ename E(Q) := by
-    intro e he f hf hef
-    have hsub : (⟨e, he⟩ : E(Q)) = ⟨f, hf⟩ := by
-      apply freshEdge_inj
-      calc
-        freshEdge ⟨e, he⟩ = ename e := (ename_apply he).symm
-        _ = ename f := hef
-        _ = freshEdge ⟨f, hf⟩ := ename_apply hf
-    exact congrArg (fun z : E(Q) => z.1) hsub
-  have ename_avoid {e : γ} (he : e ∈ E(Q)) : ename e ∉ edgeUsed := by
-    rw [ename_apply he]
-    exact freshEdge_avoid ⟨e, he⟩
+  obtain ⟨ename, ename_inj, ename_avoid⟩ :=
+    exists_injOn_avoiding edgeUsed hedgeUsed_fin hQfinE u
   let newEdges : Set γ := ename '' E(Q)
   have hnewEdges_fin : newEdges.Finite := hQfinE.image ename
-  have hnewEdges_avoid : Disjoint newEdges edgeUsed := by
-    rw [Set.disjoint_left]
-    rintro z ⟨e, he, rfl⟩
-    exact ename_avoid he
   let faceUsed : Set γ := edgeUsed ∪ newEdges
   have hfaceUsed_fin : faceUsed.Finite := hedgeUsed_fin.union hnewEdges_fin
   obtain ⟨freshFace, freshFace_inj, freshFace_avoid⟩ :=
@@ -1186,20 +1167,21 @@ theorem exists_sourceEarStepData [Infinite γ]
     have hrel := hQpath.relabelEdges ename_inj
     have hmap := hrel.map (by simpa [relabelled] using vname_inj)
     simpa [ear, relabelled, vname_a, vname_b] using hmap
+  have hVearUsed : V(ear) ⊆ edgeUsed := by
+    intro z hz
+    rw [hVear] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rcases eq_or_ne x a with rfl | hxa
+    · exact Or.inl (by simpa only [vname_a] using huCell)
+    rcases eq_or_ne x b with rfl | hxb
+    · exact Or.inl (by simpa only [vname_b] using hvCell)
+    · exact Or.inr ⟨x, ⟨hx, by simp [hxa, hxb]⟩, rfl⟩
   have hear_disjoint : Disjoint V(ear) E(ear) := by
     rw [Set.disjoint_left]
     rintro z hzV hzE
-    rw [hVear] at hzV
     rw [hEear] at hzE
-    obtain ⟨x, hxQ, rfl⟩ := hzV
-    obtain ⟨e, heQ, heq⟩ := hzE
-    have hedgeAvoid := ename_avoid heQ
-    apply hedgeAvoid
-    rcases eq_or_ne x a with rfl | hxa
-    · exact Or.inl (by rw [heq, vname_a]; exact huCell)
-    rcases eq_or_ne x b with rfl | hxb
-    · exact Or.inl (by rw [heq, vname_b]; exact hvCell)
-    · exact Or.inr ⟨x, ⟨hxQ, by simp [hxa, hxb]⟩, heq.symm⟩
+    obtain ⟨e, heQ, rfl⟩ := hzE
+    exact ename_avoid e heQ (hVearUsed hzV)
   have hvertex_inter : V(ear) ∩ V(T.str.skel) = {u, v} := by
     apply Set.Subset.antisymm
     · rintro z ⟨hzEar, hzOld⟩
@@ -1238,7 +1220,7 @@ theorem exists_sourceEarStepData [Infinite γ]
       intro e he
       rw [hEear] at he
       obtain ⟨f, hf, rfl⟩ := he
-      exact fun hmem => ename_avoid hf (Or.inl hmem)
+      exact fun hmem => ename_avoid _ hf (Or.inl hmem)
     vertex_fresh := by
       intro z hz hzu hzv
       rw [hVear] at hz
@@ -1250,28 +1232,12 @@ theorem exists_sourceEarStepData [Infinite γ]
     face₂_notMem := fun h => hface₂Avoid (Or.inl (Or.inl h))
     face₁_notMem_ear := by
       rintro (hz | hz)
-      · rw [hVear] at hz
-        obtain ⟨x, hx, heq⟩ := hz
-        rcases eq_or_ne x a with rfl | hxa
-        · apply hface₁Avoid (Or.inl (Or.inl (show face₁ ∈ T.str.cells by
-            rw [← heq, vname_a]; exact huCell)))
-        rcases eq_or_ne x b with rfl | hxb
-        · apply hface₁Avoid (Or.inl (Or.inl (show face₁ ∈ T.str.cells by
-            rw [← heq, vname_b]; exact hvCell)))
-        · exact hface₁Avoid (Or.inl (Or.inr ⟨x, ⟨hx, by simp [hxa, hxb]⟩, heq⟩))
+      · exact hface₁Avoid (Or.inl (hVearUsed hz))
       · rw [hEear] at hz
         exact hface₁Avoid (Or.inr hz)
     face₂_notMem_ear := by
       rintro (hz | hz)
-      · rw [hVear] at hz
-        obtain ⟨x, hx, heq⟩ := hz
-        rcases eq_or_ne x a with rfl | hxa
-        · apply hface₂Avoid (Or.inl (Or.inl (show face₂ ∈ T.str.cells by
-            rw [← heq, vname_a]; exact huCell)))
-        rcases eq_or_ne x b with rfl | hxb
-        · apply hface₂Avoid (Or.inl (Or.inl (show face₂ ∈ T.str.cells by
-            rw [← heq, vname_b]; exact hvCell)))
-        · exact hface₂Avoid (Or.inl (Or.inr ⟨x, ⟨hx, by simp [hxa, hxb]⟩, heq⟩))
+      · exact hface₂Avoid (Or.inl (hVearUsed hz))
       · rw [hEear] at hz
         exact hface₂Avoid (Or.inr hz)
     face_ne := fun h => Fin.zero_ne_one (freshFace_inj h)
@@ -1351,7 +1317,7 @@ theorem exists_sourceEarStepData [Infinite γ]
 bookkeeping theorem: the nontrivial branch is realized by `EarStepData.pair`; if the proposed
 ear contains an old edge, `Graph.ear_edges_notMem_or_union_eq` shows that the union did not
 change and the current transfer itself is the answer. -/
-theorem earStep_of_data [Infinite γ]
+theorem earStep_of_data
     {P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom}
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.src srcOuter srcDom H Hdraw)
@@ -1376,7 +1342,7 @@ is a generated matched cell structure. Given step 1 and one ear, the whole exten
 The invariant carried through the induction is `IsPartialTransferOf`, which does **not** mention
 connectedness of the open nonboundary part: `rem:intermediate-disconnection` says an
 intermediate stage may genuinely have it disconnected, and nothing here assumes otherwise. -/
-theorem transfer_of_ears_of_commonSubdivision_of_earStep [Infinite γ]
+theorem transfer_of_ears_of_commonSubdivision_of_earStep
     {P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom}
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.src srcOuter srcDom H Hdraw)
@@ -1403,7 +1369,7 @@ refines the old one by an explicit parent map.
 
 This compatibility form accepts both step interfaces as arguments. `earStep` discharges the
 second, while `commonSubdivision` in `CommonSubdivision.lean` discharges the first. -/
-theorem finite_transfer_toward_square_of_commonSubdivision_of_earStep [Infinite γ]
+theorem finite_transfer_toward_square_of_commonSubdivision_of_earStep
     {P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom}
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.src srcOuter srcDom H Hdraw)

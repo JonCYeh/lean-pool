@@ -142,7 +142,6 @@ theorem iUnion_component (G : Graph α β) : ⋃ u ∈ V(G), G.component u = V(G
 theorem induce_component_le : G.induce (G.component u) ≤ G :=
   induce_le component_subset_vertexSet
 
-@[simp]
 theorem mem_vertexSet_induce_component : v ∈ V(G.induce (G.component u)) ↔ G.Reaches u v :=
   Iff.rfl
 

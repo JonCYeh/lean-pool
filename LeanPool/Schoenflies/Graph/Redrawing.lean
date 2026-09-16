@@ -396,6 +396,52 @@ open Schoenflies
 
 namespace Graph
 
+/-- Join a polygonal path to disjoint radial segments meeting its ambient carrier
+only at their endpoints. The graph redrawing applies this independently to each edge. -/
+theorem exists_polygonal_arc_with_radials {U M : Set Plane} {a b p q : Plane}
+    (hpath : PolyReaches U p q) (hUM : U ⊆ M) (hAP : a ≠ p) (hBQ : b ≠ q)
+    (hnear : ∀ z ∈ segment ℝ a p, z ∈ M → z = p)
+    (hfar : ∀ z ∈ segment ℝ b q, z ∈ M → z = q)
+    (hdisjoint : Disjoint (segment ℝ a p) (segment ℝ b q)) :
+    ∃ g : ℝ → Plane, ContinuousOn g I ∧ InjOn g I ∧ g 0 = a ∧ g 1 = b ∧
+      IsPolygonal (g '' I) ∧ g '' I ⊆ segment ℝ a p ∪ U ∪ segment ℝ b q := by
+  obtain ⟨t, hlist, hsub, hlast⟩ := (hpath).exists_arcList
+  have hpaM : ∀ z ∈ poly (p :: t), z ∈ M := fun z hz => hUM (hsub hz)
+  have hpbpoly : q ∈ poly (p :: t) := hlast ▸ lastP_mem_poly (p) t
+  -- The far radial meets the straightened path only at the far contact point.
+  have hmeetQ : segment ℝ (q) (b) ∩ poly (p :: t) = {q} := by
+    refine Subset.antisymm (fun z hz => ?_) ?_
+    · rw [segment_symm] at hz
+      exact hfar z hz.1 (hpaM z hz.2)
+    · exact singleton_subset_iff.2 ⟨left_mem_segment ℝ _ _, hpbpoly⟩
+  have hlist2 : IsArcList (p :: (t ++ [b])) :=
+    IsArcList.snoc (p) t hlist (by rw [hlast]; exact hBQ)
+      (by rw [hlast]; exact hmeetQ)
+  have hpolysnoc : poly (p :: (t ++ [b]))
+      = poly (p :: t) ∪ segment ℝ (q) (b) := by
+    rw [poly_snoc, hlast]
+  -- The near radial meets the rest only at the near contact point: the straightened path
+  -- lives in `M`, and the far radial lives in the other square.
+  have hmeetP : segment ℝ (a) (p) ∩ poly (p :: (t ++ [b])) = {p} := by
+    rw [hpolysnoc]
+    refine Subset.antisymm ?_ ?_
+    · rintro z ⟨hz1, hz2 | hz2⟩
+      · exact hnear z hz1 (hpaM z hz2)
+      · rw [segment_symm] at hz2
+        exact False.elim (Set.disjoint_left.1 hdisjoint hz1 hz2)
+    · exact singleton_subset_iff.2 ⟨right_mem_segment ℝ _ _,
+        Or.inl (head_mem_poly (List.cons_ne_nil _ _))⟩
+  have hlist3 : IsArcList (a :: p :: (t ++ [b])) := ⟨hAP, hmeetP, hlist2⟩
+  have harcb := isArcBetween_poly (a) (p) (t ++ [b]) hlist3
+  rw [lastP_append] at harcb
+  obtain ⟨g, hgc, hgi, hgim, hg0, hg1⟩ := harcb
+  refine ⟨g, hgc, hgi, hg0, hg1, ⟨_, hgim⟩, ?_⟩
+  rw [hgim, poly_cons_cons, hpolysnoc]
+  refine union_subset (subset_union_of_subset_left subset_union_left _)
+    (union_subset (hsub.trans (subset_union_of_subset_left subset_union_right _)) ?_)
+  rw [segment_symm]
+  exact subset_union_right
+
 /-- **The polygonal redrawing of a finite plane graph** (`lem:polygonal-redrawing`). A finite
 plane graph is drawn again, on the *same* abstract graph and the *same* vertices, with every
 edge a polygonal arc. The blueprint speaks of an isomorphic plane drawing; since the vertices
@@ -584,55 +630,19 @@ theorem polygonal_redrawing {β : Type*} (G : Graph Plane β) [G.Finite]
       ContinuousOn g I ∧ InjOn g I ∧ g 0 = va e ∧ g 1 = vb e ∧
         IsPolygonal (g '' I) ∧ g '' I ⊆ Sset e := by
     intro e he
-    obtain ⟨t, hlist, hsub, hlast⟩ := (hpath e he).exists_arcList
-    have hpaM : ∀ z ∈ poly (pa e :: t), z ∈ M := fun z hz => hUM e (hsub hz)
-    have hAP : va e ≠ pa e := by
-      intro hEq
+    apply exists_polygonal_arc_with_radials (hpath e he) (hUM e)
+    · intro heq
       have hx := hpar e he
-      rw [← hEq, Plane.supDist_self] at hx
+      rw [← heq, Plane.supDist_self] at hx
       exact hr.ne' hx.symm
-    have hBQ : vb e ≠ pb e := by
-      intro hEq
+    · intro heq
       have hx := hpbr e he
-      rw [← hEq, Plane.supDist_self] at hx
+      rw [← heq, Plane.supDist_self] at hx
       exact hr.ne' hx.symm
-    have hpbpoly : pb e ∈ poly (pa e :: t) := hlast ▸ lastP_mem_poly (pa e) t
-    -- The far radial meets the straightened path only at the far contact point.
-    have hmeetQ : segment ℝ (pb e) (vb e) ∩ poly (pa e :: t) = {pb e} := by
-      refine Subset.antisymm (fun z hz => ?_) ?_
-      · rw [segment_symm] at hz
-        exact hsegM (vb e) (pb e) (hvbV e he) (hpbr e he) z hz.1 (hpaM z hz.2)
-      · exact singleton_subset_iff.2 ⟨left_mem_segment ℝ _ _, hpbpoly⟩
-    have hlist2 : IsArcList (pa e :: (t ++ [vb e])) :=
-      IsArcList.snoc (pa e) t hlist (by rw [hlast]; exact hBQ)
-        (by rw [hlast]; exact hmeetQ)
-    have hpolysnoc : poly (pa e :: (t ++ [vb e]))
-        = poly (pa e :: t) ∪ segment ℝ (pb e) (vb e) := by
-      rw [poly_snoc, hlast]
-    -- The near radial meets the rest only at the near contact point: the straightened path
-    -- lives in `M`, and the far radial lives in the other square.
-    have hmeetP : segment ℝ (va e) (pa e) ∩ poly (pa e :: (t ++ [vb e])) = {pa e} := by
-      rw [hpolysnoc]
-      refine Subset.antisymm ?_ ?_
-      · rintro z ⟨hz1, hz2 | hz2⟩
-        · exact hsegM (va e) (pa e) (hvaV e he) (hpar e he) z hz1 (hpaM z hz2)
-        · rw [segment_symm] at hz2
-          exact absurd (Set.disjoint_left.1
-            (hsqdisj (va e) (hvaV e he) (vb e) (hvbV e he) (hvab e he))
-            (hsegSq (va e) (pa e) (hpar e he) hz1)
-            (hsegSq (vb e) (pb e) (hpbr e he) hz2)) not_false
-      · exact singleton_subset_iff.2 ⟨right_mem_segment ℝ _ _,
-          Or.inl (head_mem_poly (List.cons_ne_nil _ _))⟩
-    have hlist3 : IsArcList (va e :: pa e :: (t ++ [vb e])) := ⟨hAP, hmeetP, hlist2⟩
-    have harcb := isArcBetween_poly (va e) (pa e) (t ++ [vb e]) hlist3
-    rw [lastP_append] at harcb
-    obtain ⟨g, hgc, hgi, hgim, hg0, hg1⟩ := harcb
-    refine ⟨g, hgc, hgi, hg0, hg1, ⟨_, hgim⟩, ?_⟩
-    rw [hgim, poly_cons_cons, hpolysnoc]
-    refine union_subset (subset_union_of_subset_left subset_union_left _)
-      (union_subset (hsub.trans (subset_union_of_subset_left subset_union_right _)) ?_)
-    rw [segment_symm]
-    exact subset_union_right
+    · exact hsegM (va e) (pa e) (hvaV e he) (hpar e he)
+    · exact hsegM (vb e) (pb e) (hvbV e he) (hpbr e he)
+    · exact Set.disjoint_of_subset (hsegSq _ _ (hpar e he)) (hsegSq _ _ (hpbr e he))
+        (hsqdisj _ (hvaV e he) _ (hvbV e he) (hvab e he))
   choose! F hFc hFi hF0 hF1 hFpoly hFsub using harc
   refine ⟨F, ⟨fun e he => ⟨hFc e he, hFi e he, ?_⟩, ?_, ?_⟩, fun e he => hFpoly e he⟩
   · rw [hF0 e he, hF1 e he]; exact hlink e he

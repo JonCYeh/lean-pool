@@ -65,24 +65,6 @@ open Plane
 
 variable {S T A B C W : Set Plane} {p x y z : Plane}
 
-/-! ### The two relations agree
-
-`PolyReaches.exists_poly` and `polyReaches_of_poly_subset` are both on `main`; this is the
-one-line packaging that lets a producer of either relation serve a consumer of the other. -/
-
-/-- The vertex-list relation of `LocallyPolygonal.lean` and the inductive relation of
-`PolygonalCarrier.lean` are the same relation. -/
-theorem polyConnIn_iff_polyReaches : PolyConnIn S x y ↔ PolyReaches S x y := by
-  constructor
-  · rintro ⟨vs, hne, hsub, hhead, hlast⟩
-    have h := polyReaches_of_poly_subset hne hsub
-    rwa [hhead, hlast] at h
-  · intro h
-    obtain ⟨vs, hne, hsub, hhead, hlast⟩ := h.exists_poly
-    exact ⟨vs, hne, hsub, hhead, hlast⟩
-
-alias ⟨PolyConnIn.polyReaches, PolyReaches.polyConnIn⟩ := polyConnIn_iff_polyReaches
-
 /-! ### The two weak local forms agree
 
 `IsLocallyPolyConn` quantifies over *pairs* of points of the neighbourhood,

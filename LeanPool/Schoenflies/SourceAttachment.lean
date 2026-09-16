@@ -54,6 +54,7 @@ lie on the old source skeleton. -/
 structure SourceFaceCrosscutData (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (F : γ) (A : Piece) where
   face_mem : F ∈ P.str.faces
+  /-- Closed segment spanning the selected source face. -/
   crosscut : Piece
   nondeg : crosscut.Nondeg
   left_mem_frontier : crosscut.1 ∈ frontier (P.src.cell F)
@@ -152,7 +153,9 @@ endpoints old source vertices.  This is the representation needed when either en
 in the interior of a wild outer edge. -/
 structure RefinedSourceFaceCrosscutData
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom) (F : γ) (A : Piece) where
+  /-- Crosscut geometry before refining its endpoints. -/
   crosscutData : SourceFaceCrosscutData P F A
+  /-- Matched subdivision making both crosscut endpoints vertices. -/
   subdivision : GeneratedPair.SubdivideSetData P
     ({crosscutData.crosscut.1, crosscutData.crosscut.2} : Set Plane)
   geometry : SourceCrosscutGeometry subdivision.pair crosscutData.crosscut
@@ -573,6 +576,7 @@ theorem pieceListGraph_single_isDrawing {J : Piece} (hJ : J.Nondeg) :
 /-- Fresh abstract edge names for an auxiliary-crosscut inner overlay. -/
 structure CrosscutOverlayRelabeling (J : Piece) (p : Plane) (s epsilon : ℝ)
     (extra : List Plane) where
+  /-- Assignment of overlay vertices, edges and faces to fresh cell names. -/
   name : Piece → γ
   name_inj : InjOn name E(Q.crosscutOverlay J p s epsilon extra)
   name_fresh : ∀ R ∈ E(Q.crosscutOverlay J p s epsilon extra), name R ∉ P.str.cells
@@ -1467,7 +1471,9 @@ whose carrier contains the complete raw local grid. -/
 structure LocalGridSourceExtensionData
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (p : Plane) (s epsilon : ℝ) where
+  /-- Finite graph extending the source skeleton and local grid. -/
   graph : _root_.Graph Plane γ
+  /-- Planar parametrizations of the extension edges. -/
   drawing : γ → ℝ → Plane
   isSourceExtension : IsSourceExtension P.src srcOuter srcDom graph drawing
   localGrid_subset :
@@ -1480,7 +1486,9 @@ that last property is exactly what the blueprint's finite component-joining loop
 structure RefinedCrosscutOverlayData
     {F : γ} {A : Piece} (r : RefinedSourceFaceCrosscutData P F A)
     (p : Plane) (s epsilon : ℝ) where
+  /-- Finite segment cover of the subdivided nonboundary skeleton. -/
   cover : SourceNonboundarySegmentCover r.subdivision.pair
+  /-- Fresh names for the crosscut and local-grid overlay. -/
   relabeling : cover.CrosscutOverlayRelabeling r.crosscutData.crosscut p s epsilon []
   isDrawing : relabeling.graph.IsDrawing relabeling.drawing
   isTwoConnected : relabeling.graph.IsTwoConnected

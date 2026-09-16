@@ -485,43 +485,11 @@ theorem exists_preArc_of_isArcBetween {P : Set Plane} {a b : Plane}
   -- And is the whole of it: the interior is connected and covered by the closed gap images.
   have hpceq : ∀ i, (pc i).interior = G i := by
     intro i
-    refine Set.Subset.antisymm ?_ (hpcsub i)
-    set W : Set Plane := ⋃ j ∈ ({i}ᶜ : Set (Fin n)), Z j with hW
-    have hWclosed : IsClosed W :=
-      Set.Finite.isClosed_biUnion (Set.toFinite _) fun j _ => (hZcompact j).isClosed
-    have hAdiff : (pc i).interior ⊆ P \ endSet Q := by
-      rw [hQ.diff_endSet_eq]
-      exact fun z hz => Set.mem_iUnion₂.2 ⟨pc i, hpcQ i, hz⟩
-    have hAZ : (pc i).interior ⊆ Z i ∪ W := by
-      intro z hz
-      obtain ⟨j, hj⟩ := Set.mem_iUnion.1 (hcov.symm ▸ hAdiff hz)
-      by_cases hji : j = i
-      · exact Or.inl ((hZeq i) ▸ Or.inl (hji ▸ hj))
-      · exact Or.inr (Set.mem_iUnion₂.2 ⟨j, hji, (hZeq j) ▸ Or.inl hj⟩)
-    have hGW : ∀ z ∈ G i, z ∉ W := by
-      intro z hz hzW
-      obtain ⟨j, hji, hzj⟩ := Set.mem_iUnion₂.1 hzW
-      have : z ∈ G j := (hZdiff j) ▸ ⟨hzj, hGdiff i hz⟩
-      exact Set.eq_empty_iff_forall_notMem.1 (hGdisj i j (Ne.symm hji)) z ⟨hz, this⟩
-    have hcover2 : (pc i).interior ⊆ Wᶜ ∪ (Z i)ᶜ := by
-      intro z hz
-      by_cases hzW : z ∈ W
-      · exact Or.inr fun hzZ => hGW z ((hZdiff i) ▸ ⟨hzZ, hAdiff hz⟩) hzW
-      · exact Or.inl hzW
-    have hnone : ¬ ((pc i).interior ∩ (Wᶜ ∩ (Z i)ᶜ)).Nonempty := by
-      rintro ⟨z, hz, hzW, hzZ⟩
-      rcases hAZ hz with h | h
-      exacts [hzZ h, hzW h]
-    have hconv : IsPreconnected ((pc i).interior) := (convex_openSegment _ _).isPreconnected
-    obtain ⟨z₀, hz₀⟩ := hGne i
-    have hAu : ((pc i).interior ∩ Wᶜ).Nonempty := ⟨z₀, hpcsub i hz₀, hGW z₀ hz₀⟩
-    have hnotv : ¬ ((pc i).interior ∩ (Z i)ᶜ).Nonempty := fun hv =>
-      hnone (hconv _ _ hWclosed.isOpen_compl (hZcompact i).isClosed.isOpen_compl hcover2 hAu hv)
-    intro z hz
-    have hzZ : z ∈ Z i := by
-      by_contra hzZ
-      exact hnotv ⟨z, hz, hzZ⟩
-    exact (hZdiff i) ▸ ⟨hzZ, hAdiff hz⟩
+    apply eq_of_preconnected_finite_partition i (convex_openSegment _ _).isPreconnected
+      (G := G) (Z := Z) ?_ (hGne i) (hpcsub i)
+      (fun j => (hZcompact j).isClosed) hZdiff hGdisj hcov
+    rw [hQ.diff_endSet_eq]
+    exact fun z hz => Set.mem_iUnion₂.2 ⟨pc i, hpcQ i, hz⟩
   -- The correspondence between gaps and pieces is a bijection.
   have hpcinj : Function.Injective pc := by
     intro i j hij
@@ -529,38 +497,14 @@ theorem exists_preArc_of_isArcBetween {P : Set Plane} {a b : Plane}
     obtain ⟨z, hz⟩ := hGne i
     have hzj : z ∈ G j := by rw [← hpceq j, ← hij, hpceq i]; exact hz
     exact Set.eq_empty_iff_forall_notMem.1 (hGdisj i j hne') z ⟨hz, hzj⟩
-  have hpcsurj : ∀ R ∈ Q, ∃ i, pc i = R := by
-    intro R hR
-    have hx : (1 / 2 : ℝ) • R.1 + (1 / 2 : ℝ) • R.2 ∈ R.interior :=
-      ⟨1 / 2, 1 / 2, by norm_num, by norm_num, by norm_num, rfl⟩
-    have hxd : (1 / 2 : ℝ) • R.1 + (1 / 2 : ℝ) • R.2 ∈ P \ endSet Q := by
-      rw [hQ.diff_endSet_eq]; exact Set.mem_iUnion₂.2 ⟨R, hR, hx⟩
-    obtain ⟨i, hi⟩ := Set.mem_iUnion.1 (hcov.symm ▸ hxd)
-    refine ⟨i, ?_⟩
-    by_contra hne'
-    exact hQ.interiors (pc i) (hpcQ i) R hR hne' _ (hpceq i ▸ hi) hx
+  have hpcsurj : ∀ R ∈ Q, ∃ i, pc i = R :=
+    hQ.exists_piece_index hpcQ (by simpa only [hpceq] using hcov)
   -- The ends of the piece are the two ends of the gap.
   have hends : ∀ i, ((pc i).1 = f (tp i) ∧ (pc i).2 = f (nx i)) ∨
       ((pc i).1 = f (nx i) ∧ (pc i).2 = f (tp i)) := by
     intro i
-    have hnd : (pc i).1 ≠ (pc i).2 := hQ.nondeg _ (hpcQ i)
-    have hclosure : (pc i).seg ⊆ Z i := by
-      have hcl : closure ((pc i).interior) ⊆ Z i := by
-        rw [hpceq i]
-        exact closure_minimal (fun z hz => (hZeq i) ▸ Or.inl hz) (hZcompact i).isClosed
-      rwa [Piece.interior, closure_openSegment] at hcl
-    have hmem : ∀ z, z = (pc i).1 ∨ z = (pc i).2 → z = f (tp i) ∨ z = f (nx i) := by
-      intro z hz
-      have hzseg : z ∈ (pc i).seg := by
-        rcases hz with rfl | rfl
-        exacts [left_mem_segment ℝ _ _, right_mem_segment ℝ _ _]
-      rcases (hZeq i) ▸ hclosure hzseg with hzG | hzE
-      · exfalso
-        rw [← hpceq i] at hzG
-        rcases hz with rfl | rfl
-        exacts [hnd (left_mem_openSegment_iff.1 hzG), hnd (right_mem_openSegment_iff.1 hzG)]
-      · simpa only [Set.mem_insert_iff, Set.mem_singleton_iff] using hzE
-    exact pair_eq_of_mem_pair hnd (hmem _ (Or.inl rfl)) (hmem _ (Or.inr rfl))
+    exact Piece.ends_of_closed_gap (hQ.nondeg _ (hpcQ i)) (hZcompact i).isClosed
+      (hpceq i) (hZeq i)
   have hpcseg : ∀ i, (pc i).seg = segment ℝ (f (tp i)) (f (nx i)) := by
     intro i
     rcases hends i with ⟨h1, h2⟩ | ⟨h1, h2⟩

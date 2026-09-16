@@ -137,7 +137,7 @@ def TargetCommonSubdivision
     K.IsTwoConnected ∧ K ≤ H ∧ IsTargetPartialTransferOf T₀ P K Hdraw par₀
 
 /-- One target ear insertion, expressed as the step consumed by relative-ear induction. -/
-def TargetEarStep [Infinite γ]
+def TargetEarStep
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane) : Prop :=
   ∀ (B : Graph Plane γ) (a b : Plane) (D : List γ), B.IsTwoConnected → B ≤ H →
@@ -155,8 +155,11 @@ structure TargetEarStepData (T : GeneratedPair S₀ srcOuter srcDom tgtOuter tgt
   splitData : T.str.SplitData
   /-- The two realizations of its new ear. -/
   srcPos : γ → Plane
+  /-- Parametrizations of the matching source ear. -/
   srcDraw : γ → ℝ → Plane
+  /-- Positions of the target ear vertices. -/
   tgtPos : γ → Plane
+  /-- Parametrizations of the target ear edges. -/
   tgtDraw : γ → ℝ → Plane
   /-- Each realized ear is a crosscut of the corresponding old face. -/
   srcCrosscut : splitData.EarCrosscut T.src srcPos srcDraw
@@ -234,7 +237,7 @@ end TargetEarStepData
 
 /-- The nontrivial reverse-ear constructor, before the already-present-edge branch is folded
 back in. -/
-def TargetEarStepConstruction [Infinite γ]
+def TargetEarStepConstruction
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane)
     (_hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw) : Prop :=
@@ -248,7 +251,7 @@ def TargetEarStepConstruction [Infinite γ]
 
 /-- Fold the explicit nontrivial reverse-ear constructor into the total `TargetEarStep`
 interface. -/
-theorem targetEarStep_of_data [Infinite γ]
+theorem targetEarStep_of_data
     {P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom}
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)
@@ -508,8 +511,11 @@ theorem NonouterIncidenceUniqueAtBoundary.relabelEdges {β δ : Type*} [Nonempty
 /-- The one-sided constructor data obtained by realizing the ambient target path. -/
 structure TargetSideEarStepData (T : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (B H : Graph Plane γ) (Hdraw : γ → ℝ → Plane) (a b : Plane) (D : List γ) where
+  /-- Abstract split realizing the target ear. -/
   splitData : T.str.SplitData
+  /-- Positions of the new target vertices. -/
   tgtPos : γ → Plane
+  /-- Parametrizations of the new target edges. -/
   tgtDraw : γ → ℝ → Plane
   tgtCrosscut : splitData.EarCrosscut T.tgt tgtPos tgtDraw
   tgtEdgePolygonal : ∀ ⦃e⦄, e ∈ E(splitData.ear) →
@@ -555,36 +561,12 @@ theorem exists_targetSideEarStepData [Infinite γ]
     exists_injective_pinned_avoiding T.str.finite_cells huCell hvCell huv hQfinV hab
   let newVertices : Set γ := vname '' (V(Q) \ {a, b})
   have hnewVertices_fin : newVertices.Finite := hQfinV.sdiff.image vname
-  have hnewVertices_avoid : Disjoint newVertices T.str.cells := by
-    rw [Set.disjoint_left]
-    rintro z ⟨x, ⟨hxQ, hxab⟩, rfl⟩ hzCell
-    exact vname_fresh x hxQ (fun h => hxab (Or.inl h)) (fun h => hxab (Or.inr h)) hzCell
   let edgeUsed : Set γ := T.str.cells ∪ newVertices
   have hedgeUsed_fin : edgeUsed.Finite := T.str.finite_cells.union hnewVertices_fin
-  let _ : Finite E(Q) := Set.finite_coe_iff.mpr hQfinE
-  obtain ⟨freshEdge, freshEdge_inj, freshEdge_avoid⟩ :=
-    exists_injective_avoiding edgeUsed hedgeUsed_fin E(Q)
-  let ename : γ → γ := fun e => if he : e ∈ E(Q) then freshEdge ⟨e, he⟩ else u
-  have ename_apply {e : γ} (he : e ∈ E(Q)) : ename e = freshEdge ⟨e, he⟩ := by
-    simp [ename, he]
-  have ename_inj : InjOn ename E(Q) := by
-    intro e he f hf hef
-    have hsub : (⟨e, he⟩ : E(Q)) = ⟨f, hf⟩ := by
-      apply freshEdge_inj
-      calc
-        freshEdge ⟨e, he⟩ = ename e := (ename_apply he).symm
-        _ = ename f := hef
-        _ = freshEdge ⟨f, hf⟩ := ename_apply hf
-    exact congrArg (fun z : E(Q) => z.1) hsub
-  have ename_avoid {e : γ} (he : e ∈ E(Q)) : ename e ∉ edgeUsed := by
-    rw [ename_apply he]
-    exact freshEdge_avoid ⟨e, he⟩
+  obtain ⟨ename, ename_inj, ename_avoid⟩ :=
+    exists_injOn_avoiding edgeUsed hedgeUsed_fin hQfinE u
   let newEdges : Set γ := ename '' E(Q)
   have hnewEdges_fin : newEdges.Finite := hQfinE.image ename
-  have hnewEdges_avoid : Disjoint newEdges edgeUsed := by
-    rw [Set.disjoint_left]
-    rintro z ⟨e, he, rfl⟩
-    exact ename_avoid he
   let faceUsed : Set γ := edgeUsed ∪ newEdges
   have hfaceUsed_fin : faceUsed.Finite := hedgeUsed_fin.union hnewEdges_fin
   obtain ⟨freshFace, freshFace_inj, freshFace_avoid⟩ :=
@@ -599,20 +581,21 @@ theorem exists_targetSideEarStepData [Infinite γ]
     have hrel := hQpath.relabelEdges ename_inj
     have hmap := hrel.map (by simpa [relabelled] using vname_inj)
     simpa [ear, relabelled, vname_a, vname_b] using hmap
+  have hVearUsed : V(ear) ⊆ edgeUsed := by
+    intro z hz
+    rw [hVear] at hz
+    obtain ⟨x, hx, rfl⟩ := hz
+    rcases eq_or_ne x a with rfl | hxa
+    · exact Or.inl (by simpa only [vname_a] using huCell)
+    rcases eq_or_ne x b with rfl | hxb
+    · exact Or.inl (by simpa only [vname_b] using hvCell)
+    · exact Or.inr ⟨x, ⟨hx, by simp [hxa, hxb]⟩, rfl⟩
   have hear_disjoint : Disjoint V(ear) E(ear) := by
     rw [Set.disjoint_left]
     rintro z hzV hzE
-    rw [hVear] at hzV
     rw [hEear] at hzE
-    obtain ⟨x, hxQ, rfl⟩ := hzV
-    obtain ⟨e, heQ, heq⟩ := hzE
-    have hedgeAvoid := ename_avoid heQ
-    apply hedgeAvoid
-    rcases eq_or_ne x a with rfl | hxa
-    · exact Or.inl (by rw [heq, vname_a]; exact huCell)
-    rcases eq_or_ne x b with rfl | hxb
-    · exact Or.inl (by rw [heq, vname_b]; exact hvCell)
-    · exact Or.inr ⟨x, ⟨hxQ, by simp [hxa, hxb]⟩, heq.symm⟩
+    obtain ⟨e, heQ, rfl⟩ := hzE
+    exact ename_avoid e heQ (hVearUsed hzV)
   have hvertex_inter : V(ear) ∩ V(T.str.skel) = {u, v} := by
     apply Set.Subset.antisymm
     · rintro z ⟨hzEar, hzOld⟩
@@ -650,7 +633,7 @@ theorem exists_targetSideEarStepData [Infinite γ]
       intro e he
       rw [hEear] at he
       obtain ⟨f, hf, rfl⟩ := he
-      exact fun hmem => ename_avoid hf (Or.inl hmem)
+      exact fun hmem => ename_avoid _ hf (Or.inl hmem)
     vertex_fresh := by
       intro z hz hzu hzv
       rw [hVear] at hz
@@ -662,28 +645,12 @@ theorem exists_targetSideEarStepData [Infinite γ]
     face₂_notMem := fun h => hface₂Avoid (Or.inl (Or.inl h))
     face₁_notMem_ear := by
       rintro (hz | hz)
-      · rw [hVear] at hz
-        obtain ⟨x, hx, heq⟩ := hz
-        rcases eq_or_ne x a with rfl | hxa
-        · apply hface₁Avoid (Or.inl (Or.inl (show face₁ ∈ T.str.cells by
-            rw [← heq, vname_a]; exact huCell)))
-        rcases eq_or_ne x b with rfl | hxb
-        · apply hface₁Avoid (Or.inl (Or.inl (show face₁ ∈ T.str.cells by
-            rw [← heq, vname_b]; exact hvCell)))
-        · exact hface₁Avoid (Or.inl (Or.inr ⟨x, ⟨hx, by simp [hxa, hxb]⟩, heq⟩))
+      · exact hface₁Avoid (Or.inl (hVearUsed hz))
       · rw [hEear] at hz
         exact hface₁Avoid (Or.inr hz)
     face₂_notMem_ear := by
       rintro (hz | hz)
-      · rw [hVear] at hz
-        obtain ⟨x, hx, heq⟩ := hz
-        rcases eq_or_ne x a with rfl | hxa
-        · apply hface₂Avoid (Or.inl (Or.inl (show face₂ ∈ T.str.cells by
-            rw [← heq, vname_a]; exact huCell)))
-        rcases eq_or_ne x b with rfl | hxb
-        · apply hface₂Avoid (Or.inl (Or.inl (show face₂ ∈ T.str.cells by
-            rw [← heq, vname_b]; exact hvCell)))
-        · exact hface₂Avoid (Or.inl (Or.inr ⟨x, ⟨hx, by simp [hxa, hxb]⟩, heq⟩))
+      · exact hface₂Avoid (Or.inl (hVearUsed hz))
       · rw [hEear] at hz
         exact hface₂Avoid (Or.inr hz)
     face_ne := fun h => Fin.zero_ne_one (freshFace_inj h)
@@ -1471,7 +1438,7 @@ def GeneratedPair.SourceEndpointFreshCombinatorics
 
 /-- The remaining prescribed-ear combinatorics after boundary anchoring has supplied strong
 accessibility: both outer endpoints are fresh and incident with the selected face alone. -/
-def TargetEarFreshCombinatorics [Infinite γ]
+def TargetEarFreshCombinatorics
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane) : Prop :=
   ∀ (B : Graph Plane γ) (a b : Plane) (D : List γ), B.IsTwoConnected → B ≤ H →
@@ -1489,7 +1456,6 @@ def TargetEarFreshCombinatorics [Infinite γ]
 /-- The relative no-new-incidence boundary condition, together with the static two-branch
 invariant of generated outer graphs, supplies all reverse-ear fresh combinatorics. -/
 theorem targetEarFreshCombinatorics_of_noNewNonouterIncidence_of_outerIncidenceAtMostTwo
-    [Infinite γ]
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)
@@ -1523,7 +1489,6 @@ theorem targetEarFreshCombinatorics_of_noNewNonouterIncidence_of_outerIncidenceA
 /-- Global uniqueness is a sufficient special case of the relative no-new-incidence
 condition. -/
 theorem targetEarFreshCombinatorics_of_nonouterIncidenceUnique_of_outerIncidenceAtMostTwo
-    [Infinite γ]
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)
@@ -1536,7 +1501,7 @@ theorem targetEarFreshCombinatorics_of_nonouterIncidenceUnique_of_outerIncidence
 
 /-- The relative no-new-incidence condition and an outer cycle on the base structure supply
 the reverse-ear fresh combinatorics. -/
-theorem targetEarFreshCombinatorics_of_noNewNonouterIncidence_of_outerCycle [Infinite γ]
+theorem targetEarFreshCombinatorics_of_noNewNonouterIncidence_of_outerCycle
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)
@@ -1549,7 +1514,7 @@ theorem targetEarFreshCombinatorics_of_noNewNonouterIncidence_of_outerCycle [Inf
 
 /-- The preceding reverse-ear combinatorics follows from the natural base invariant that the
 distinguished outer edges form one simple cycle. -/
-theorem targetEarFreshCombinatorics_of_nonouterIncidenceUnique_of_outerCycle [Infinite γ]
+theorem targetEarFreshCombinatorics_of_nonouterIncidenceUnique_of_outerCycle
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)
@@ -1561,7 +1526,7 @@ theorem targetEarFreshCombinatorics_of_nonouterIncidenceUnique_of_outerCycle [In
 
 /-- The combinatorial/anchoring invariant still required from the prescribed target ear order:
 both source endpoints selected by every nontrivial target ear are ready in the preceding sense. -/
-def TargetEarFreshInvariant [Infinite γ]
+def TargetEarFreshInvariant
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane) : Prop :=
   ∀ (B : Graph Plane γ) (a b : Plane) (D : List γ), B.IsTwoConnected → B ≤ H →
@@ -1576,7 +1541,7 @@ def TargetEarFreshInvariant [Infinite γ]
 
 /-- Relative anchoring of new ambient boundary edges and the remaining fresh-incidence
 combinatorics together give the complete reverse-ear readiness invariant. -/
-theorem targetEarFreshInvariant_of_newBoundaryAnchored [Infinite γ]
+theorem targetEarFreshInvariant_of_newBoundaryAnchored
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane)
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)
@@ -1601,7 +1566,7 @@ theorem targetEarFreshInvariant_of_newBoundaryAnchored [Infinite γ]
 
 /-- Anchoring every nonouter boundary edge is a sufficient special case of relative
 new-edge anchoring. -/
-theorem targetEarFreshInvariant_of_boundaryAnchored [Infinite γ]
+theorem targetEarFreshInvariant_of_boundaryAnchored
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane)
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)
@@ -1615,7 +1580,7 @@ theorem targetEarFreshInvariant_of_boundaryAnchored [Infinite γ]
 source face selected by that ear.  This is the geometric invariant direction (b) must maintain:
 off the wild curve it follows from polygonal-side accessibility, while a fresh wild-boundary
 endpoint is supplied by `polyAccessible_of_stronglyAccessible`. -/
-def TargetEarEndpointAccessibility [Infinite γ]
+def TargetEarEndpointAccessibility
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane) : Prop :=
   ∀ (B : Graph Plane γ) (a b : Plane) (D : List γ), B.IsTwoConnected → B ≤ H →
@@ -1631,7 +1596,7 @@ def TargetEarEndpointAccessibility [Infinite γ]
 /-- The fresh-anchor invariant implies the endpoint-accessibility invariant: the off-curve
 branch uses polygonal-side accessibility, and the fresh branch uses the compact carrier and
 unique-face theorem above. -/
-theorem targetEarEndpointAccessibility_of_freshInvariant [Infinite γ]
+theorem targetEarEndpointAccessibility_of_freshInvariant
     (P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom)
     (H : Graph Plane γ) (Hdraw : γ → ℝ → Plane)
     (hfresh : TargetEarFreshInvariant P H Hdraw) :
@@ -1787,7 +1752,7 @@ theorem targetCommonSubdivision [Infinite γ]
     w.isTargetPartialTransferOf⟩
 
 /-- Iterate a target ear step from a common subdivision through the whole extension graph. -/
-theorem targetTransferOfEars [Infinite γ]
+theorem targetTransferOfEars
     {P : GeneratedPair S₀ srcOuter srcDom tgtOuter tgtDom}
     {H : Graph Plane γ} {Hdraw : γ → ℝ → Plane}
     (hH : IsSourceExtension P.tgt tgtOuter tgtDom H Hdraw)

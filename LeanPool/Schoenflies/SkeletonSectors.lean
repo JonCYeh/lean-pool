@@ -916,7 +916,7 @@ theorem IsDrawing.exists_edge_radial [G.Finite] (h : IsDrawing G drawing)
 
 /-- **Uniqueness.** Two edges carrying the same radial segment are the same edge: the relative
 interior of the segment is off the vertex set, and there a point lies on only one edge. -/
-theorem IsDrawing.edge_radial_unique [G.Finite] (h : IsDrawing G drawing)
+theorem IsDrawing.edge_radial_unique (h : IsDrawing G drawing)
     (hr : IsLocalDisk G drawing x r) (hdir : Plane.IsDirection d) {e f : β}
     (he : e ∈ E(G)) (hf : f ∈ E(G)) (hse : segment ℝ x (x + r • d) ⊆ edgeArc drawing e)
     (hsf : segment ℝ x (x + r • d) ⊆ edgeArc drawing f) : e = f := by
@@ -972,7 +972,7 @@ by one edge. Together with `IsDrawing.exists_edge_radial` and `IsDrawing.edge_ra
 this says that the local directions at `x` are in bijection with the local branches, so the
 radial segments of `lem:local-skeleton-structure` really do have pairwise distinct
 directions. -/
-theorem IsDrawing.not_three_localDirs_on_edge [G.Finite] (h : IsDrawing G drawing)
+theorem IsDrawing.not_three_localDirs_on_edge (h : IsDrawing G drawing)
     (hr : IsLocalDisk G drawing x r) {e : β} (he : e ∈ E(G)) {d₁ d₂ d₃ : Plane}
     (hd₁ : Plane.IsDirection d₁) (hd₂ : Plane.IsDirection d₂) (hd₃ : Plane.IsDirection d₃)
     (h₁₂ : d₁ ≠ d₂) (h₁₃ : d₁ ≠ d₃) (h₂₃ : d₂ ≠ d₃)

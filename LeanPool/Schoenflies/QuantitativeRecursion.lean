@@ -21,8 +21,10 @@ variable {γ : Type*} {S₀ : CellStructure γ} {C : Set Plane}
 /-- The external choices needed by the quantitative recursion.  `centreBase` will be wrapped
 by `recur`, so every one of its values occurs at arbitrarily late stages. -/
 structure QuantitativeSchedule (C : Set Plane) where
+  /-- Interior centres to revisit arbitrarily late in the recursion. -/
   centreBase : ℕ → Plane
   centreBase_mem : ∀ n, centreBase n ∈ inside C
+  /-- Boundary anchors prescribed at each stage. -/
   anchors : ℕ → List Plane
 
 namespace QuantitativeSchedule

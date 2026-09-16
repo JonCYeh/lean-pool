@@ -174,6 +174,7 @@ the target face-mesh estimate inherited from the preceding reverse stage. -/
 structure QuantitativeForwardStage
     (P : GeneratedPair S₀ C (C ∪ inside C) modelCurve (Plane.closedSquare 0 1))
     (p : Plane) (windowEpsilon meshEpsilon targetBound : ℝ) where
+  /-- Local source-grid refinement at the prescribed scale. -/
   forward : LocalGridForwardStageData P p
     (windowRadius C windowEpsilon p) meshEpsilon
   targetFaceMesh : TargetFaceMesh forward.pair targetBound
@@ -233,7 +234,9 @@ structure QuantitativeSuccessor
     (P : GeneratedPair S₀ C (C ∪ inside C) modelCurve (Plane.closedSquare 0 1))
     (anchors : List Plane) (p : Plane)
     (windowEpsilon sourceBound targetBound : ℝ) where
+  /-- Uniform target refinement performed first. -/
   reverse : QuantitativeReverseStage P anchors targetBound
+  /-- Source-grid refinement of the reverse stage output. -/
   forward : QuantitativeForwardStage reverse.pair p windowEpsilon sourceBound
     reverse.overlay.delta
 

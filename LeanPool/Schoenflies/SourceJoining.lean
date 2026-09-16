@@ -236,6 +236,7 @@ theorem joinEnds_subset_joinedCrosscutOverlay
 /-- Fresh abstract edge names for the joined inner overlay. -/
 structure JoinedCrosscutOverlayRelabeling
     (w : Q.CrosscutOverlayRelabeling J p s epsilon extra) (joins : List Piece) where
+  /-- Fresh names for the overlay after adding the joining segments. -/
   name : Piece → γ
   name_inj : InjOn name E(Q.joinedCrosscutOverlay J p s epsilon extra joins)
   name_fresh : ∀ R ∈ E(Q.joinedCrosscutOverlay J p s epsilon extra joins),
@@ -950,8 +951,11 @@ end SourceNonboundarySegmentCover
 structure JoinedLocalGridSourceExtensionData
     {F : γ} {A : Piece} (r : RefinedSourceFaceCrosscutData P F A)
     (p : Plane) (s epsilon : ℝ) where
+  /-- Crosscut overlay before joining its components. -/
   oldOverlay : RefinedCrosscutOverlayData r p s epsilon
+  /-- Polygonal segments joining the nonboundary components. -/
   joins : List Piece
+  /-- Cell names for the overlay including the joining segments. -/
   joinedRelabeling :
     SourceNonboundarySegmentCover.JoinedCrosscutOverlayRelabeling
       oldOverlay.relabeling joins
@@ -1336,7 +1340,9 @@ with admissibility restored and the complete raw local grid in its source skelet
 structure LocalGridForwardStageData {C : Set Plane}
     (P : GeneratedPair S₀ C (C ∪ inside C) tgtOuter tgtDom)
     (p : Plane) (s epsilon : ℝ) where
+  /-- Generated matched pair after the local-grid transfer. -/
   pair : GeneratedPair S₀ C (C ∪ inside C) tgtOuter tgtDom
+  /-- Parent cell of each cell in the refinement. -/
   parent : γ → γ
   transition : StageTransition pair P parent
   src_isAdmissible : pair.src.IsAdmissible C (C ∪ inside C)

@@ -25,8 +25,8 @@ is used nowhere; the ball of the classical proof appears only in
 Brick B6 of `lem:polygonal-redrawing` (H6): polygonal connectivity one level up.
 
 * `PolyReaches` — "joined by a polygonal path inside `C`", as an inductive relation.
-  **Note for the integrator:** `Schoenflies/LocallyPolygonal.lean` is being written
-  concurrently and defines a relation of the same meaning; the two want unifying.
+  `LocallyPolygonal.lean` exposes its vertex-list representation and delegates the relation
+  operations to this implementation.
 * `IsLocallyPolyConnected` — the hypothesis replacing openness.
 * `PolyReaches.of_isPreconnected` — Lemma 1.1 (polygonal connectedness) over a carrier.
 * `exists_poly_of_isPreconnected'` — the old `exists_poly_of_isPreconnected` re-derived from

@@ -211,6 +211,13 @@ names. Two of those copies were literally the same statement in modules that do 
 other, so the build never noticed: alpha-equivalent `Prop`s are defeq under proof irrelevance,
 and Lean's import checker accepts them. They live here now. -/
 
+/-- The two ends of an arc are distinct: they are the images of `0` and `1`. -/
+theorem IsArcBetween.ne {A : Set Plane} {p q : Plane} (h : IsArcBetween A p q) : p ≠ q := by
+  obtain ⟨f, -, hinj, -, hf0, hf1⟩ := h
+  intro he
+  have h01 : (0 : ℝ) = 1 := hinj zero_mem_I one_mem_I (by rw [hf0, hf1, he])
+  norm_num at h01
+
 /-- **The interior of an arc is the image of the open parameter interval.** The bridge from
 `IsArcBetween`, which is about the set, to `openArc`, which is about a parametrisation. -/
 theorem IsArcBetween.diff_eq_openArc {A : Set Plane} {p q : Plane} (h : IsArcBetween A p q) :
@@ -255,6 +262,18 @@ theorem IsArcBetween.right_mem_closure_diff {A : Set Plane} {p q : Plane}
     (h : IsArcBetween A p q) : q ∈ closure (A \ {p, q}) := by
   rw [Set.pair_comm]
   exact h.reverse.left_mem_closure_diff
+
+/-- **An arc is the closure of its interior.** The arc is compact, hence closed, so the closure
+of the interior is inside it; conversely the interior is inside its own closure and each of the
+two endpoints is a limit of it. -/
+theorem IsArcBetween.closure_diff {A : Set Plane} {p q : Plane} (h : IsArcBetween A p q) :
+    closure (A \ {p, q}) = A := by
+  refine Subset.antisymm (h.isArc.isClosed.closure_subset_iff.2 sdiff_subset) fun z hz => ?_
+  by_cases hzp : z = p
+  · exact hzp ▸ h.left_mem_closure_diff
+  by_cases hzq : z = q
+  · exact hzq ▸ h.right_mem_closure_diff
+  exact subset_closure ⟨hz, by rintro (rfl | rfl) <;> simp_all⟩
 
 /-! ### A parametrisation is an open map onto its arc -/
 

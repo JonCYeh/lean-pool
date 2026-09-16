@@ -89,13 +89,6 @@ theorem isSeparating_of_isJordanCurve {S : Set Plane} (hJ : IsJordanCurve S)
   obtain ⟨m, Q, hQ⟩ := exists_closedPolygon hJ hP
   exact hQ ▸ Q.isSeparating_carrier
 
-/-- The two ends of an arc are distinct: they are the images of `0` and `1`. -/
-theorem IsArcBetween.ne {A : Set Plane} {p q : Plane} (h : IsArcBetween A p q) : p ≠ q := by
-  obtain ⟨f, -, hinj, -, hf0, hf1⟩ := h
-  intro he
-  have h01 : (0 : ℝ) = 1 := hinj zero_mem_I one_mem_I (by rw [hf0, hf1, he])
-  norm_num at h01
-
 /-- **A polyline is a chain from its first point to its last**, with its degenerate steps
 dropped. `Schoenflies.isChainFrom_pathPieces` says this for `Schoenflies.pathPieces`, which keeps
 them; `Schoenflies.segsOf` is the list a consumer needing nondegenerate edges must use. -/

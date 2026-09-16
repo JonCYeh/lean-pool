@@ -3,7 +3,7 @@ Copyright (c) 2026 Álvaro Begué. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Álvaro Begué
 -/
-import LeanPool.Schoenflies.PolyPath
+import LeanPool.Schoenflies.PolygonalCarrier
 import LeanPool.Schoenflies.Square
 import LeanPool.Schoenflies.UniformBound
 
@@ -83,64 +83,53 @@ below be phrased without repeating the vertex-list existential. -/
 def PolyConnIn (S : Set Plane) (x y : Plane) : Prop :=
   ∃ vs : List Plane, ∃ h : vs ≠ [], poly vs ⊆ S ∧ vs.head h = x ∧ vs.getLast h = y
 
+/-! ### The two relations agree
+
+`PolyReaches.exists_poly` and `polyReaches_of_poly_subset` are both on `main`; this is the
+one-line packaging that lets a producer of either relation serve a consumer of the other. -/
+
+/-- The vertex-list relation of `LocallyPolygonal.lean` and the inductive relation of
+`PolygonalCarrier.lean` are the same relation. -/
+theorem polyConnIn_iff_polyReaches : PolyConnIn S x y ↔ PolyReaches S x y := by
+  constructor
+  · rintro ⟨vs, hne, hsub, hhead, hlast⟩
+    have h := polyReaches_of_poly_subset hne hsub
+    rwa [hhead, hlast] at h
+  · intro h
+    obtain ⟨vs, hne, hsub, hhead, hlast⟩ := h.exists_poly
+    exact ⟨vs, hne, hsub, hhead, hlast⟩
+
+alias ⟨PolyConnIn.polyReaches, PolyReaches.polyConnIn⟩ := polyConnIn_iff_polyReaches
+
 theorem PolyConnIn.refl (hx : x ∈ S) : PolyConnIn S x x :=
-  ⟨[x], by simp, by simpa using hx, rfl, rfl⟩
+  (PolyReaches.refl hx).polyConnIn
 
-/-- A point joined to anything lies in the set: the carrier contains the head. -/
-theorem PolyConnIn.left_mem (h : PolyConnIn S x y) : x ∈ S := by
-  obtain ⟨vs, hne, hsub, hhead, -⟩ := h
-  exact hhead ▸ hsub (head_mem_poly hne)
+/-- A point joined to anything lies in the carrier. -/
+theorem PolyConnIn.left_mem (h : PolyConnIn S x y) : x ∈ S :=
+  h.polyReaches.left_mem
 
-theorem PolyConnIn.right_mem (h : PolyConnIn S x y) : y ∈ S := by
-  obtain ⟨vs, hne, hsub, -, hlast⟩ := h
-  exact hlast ▸ hsub (getLast_mem_poly hne)
+theorem PolyConnIn.right_mem (h : PolyConnIn S x y) : y ∈ S :=
+  h.polyReaches.right_mem
 
-theorem PolyConnIn.mono (h : PolyConnIn S x y) (hST : S ⊆ T) : PolyConnIn T x y := by
-  obtain ⟨vs, hne, hsub, hhead, hlast⟩ := h
-  exact ⟨vs, hne, hsub.trans hST, hhead, hlast⟩
+theorem PolyConnIn.mono (h : PolyConnIn S x y) (hST : S ⊆ T) : PolyConnIn T x y :=
+  (h.polyReaches.mono hST).polyConnIn
 
 theorem PolyConnIn.trans (hxy : PolyConnIn S x y) (hyz : PolyConnIn S y z) :
-    PolyConnIn S x z := by
-  obtain ⟨vs, hv, hvS, hvh, hvl⟩ := hxy
-  obtain ⟨ws, hw, hwS, hwh, hwl⟩ := hyz
-  obtain ⟨w, rest, rfl⟩ := List.exists_cons_of_ne_nil hw
-  simp only [List.head_cons] at hwh
-  subst hwh
-  refine ⟨vs ++ w :: rest, by simp, ?_, ?_, ?_⟩
-  · rw [poly_append hv w rest hvl]; exact union_subset hvS hwS
-  · rw [List.head_append_of_ne_nil hv]; exact hvh
-  · rw [List.getLast_append_of_ne_nil _ (List.cons_ne_nil w rest)]; exact hwl
+    PolyConnIn S x z :=
+  (hxy.polyReaches.trans hyz.polyReaches).polyConnIn
 
-theorem PolyConnIn.symm (h : PolyConnIn S x y) : PolyConnIn S y x := by
-  obtain ⟨vs, hv, hvS, hvh, hvl⟩ := h
-  refine ⟨vs.reverse, by simpa using hv, ?_, ?_, ?_⟩
-  · rw [poly_reverse]; exact hvS
-  · rw [List.head_reverse]; exact hvl
-  · rw [List.getLast_reverse]; exact hvh
+theorem PolyConnIn.symm (h : PolyConnIn S x y) : PolyConnIn S y x :=
+  h.polyReaches.symm.polyConnIn
 
 /-- Convexity is the base case: the segment is already a polygonal path. -/
 theorem polyConnIn_of_convex {C : Set Plane} (hC : Convex ℝ C) (hCS : C ⊆ S)
     (hx : x ∈ C) (hy : y ∈ C) : PolyConnIn S x y :=
-  ⟨[x, y], by simp, by
-    rw [poly_cons_cons, poly_singleton]
-    exact union_subset ((hC.segment_subset hx hy).trans hCS)
-      (singleton_subset_iff.2 (hCS hy)), rfl, rfl⟩
+  (PolyReaches.of_segment ((hC.segment_subset hx hy).trans hCS)).polyConnIn
 
-/-- Two convex pieces that meet are polygonally connected in their union — two segments through
-a common point. This is the "two rectangles meeting in a rectangle" step, with the shape of the
-overlap irrelevant: only that it is inhabited. -/
+/-- Two intersecting convex pieces are joined by segments through a common point. -/
 theorem polyConnIn_union_of_convex {C D : Set Plane} (hC : Convex ℝ C) (hD : Convex ℝ D)
-    (hmeet : (C ∩ D).Nonempty) (hx : x ∈ C ∪ D) (hy : y ∈ C ∪ D) : PolyConnIn (C ∪ D) x y := by
-  obtain ⟨w, hwC, hwD⟩ := hmeet
-  have hxw : PolyConnIn (C ∪ D) x w := by
-    rcases hx with hx | hx
-    · exact polyConnIn_of_convex hC subset_union_left hx hwC
-    · exact polyConnIn_of_convex hD subset_union_right hx hwD
-  have hwy : PolyConnIn (C ∪ D) w y := by
-    rcases hy with hy | hy
-    · exact polyConnIn_of_convex hC subset_union_left hwC hy
-    · exact polyConnIn_of_convex hD subset_union_right hwD hy
-  exact hxw.trans hwy
+    (hmeet : (C ∩ D).Nonempty) (hx : x ∈ C ∪ D) (hy : y ∈ C ∪ D) : PolyConnIn (C ∪ D) x y :=
+  (polyReaches_union_of_convex hC hD hmeet Subset.rfl hx hy).polyConnIn
 
 /-! ### The local statement -/
 
