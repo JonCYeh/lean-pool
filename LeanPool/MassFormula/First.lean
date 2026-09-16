@@ -1551,7 +1551,8 @@ private lemma annihAt_eq_shape (hπ : Irreducible π) (hint : IsIntegral 𝒪[K]
   rw [sub_eq_add_neg, ← Finset.sum_neg_distrib]
   congr 1
   refine Finset.sum_congr rfl fun i _ => ?_
-  rw [map_neg, neg_mul]
+  rw [map_neg]
+  exact (neg_mul _ _).symm
 
 omit [IsUniformAddGroup K] in
 /-- Below the top degree, the coefficients of the annihilator are the negated coordinates of
