@@ -119,7 +119,7 @@ lemma Dset_tests_in_FL α F δ (in_D : (F, δ) ∈ Dset α) ψ : F ⊆ FLb α ψ
       have IHβ := Dset_tests_in_FL _ _ _ in_D'
       grind [FLb]
     · simp_all only [↓reduceIte, List.mem_cons, Prod.mk.injEq, List.not_mem_nil, or_false]
-      cases Fδ_in ; subst_eqs
+      cases Fδ_in; subst_eqs
       have IH := Dset_tests_in_FL α F γ Gγ_in_D (⌈β⌉ψ)
       grind [FLb]
   case union α β =>
@@ -157,14 +157,14 @@ lemma Dset_progs_in_FL F δ α (in_D : (F, δ) ∈ Dset α) ψ : δ ≠ [] → (
       rcases in_l with ⟨l, ⟨F', δ', in_D', def_l⟩ , in_l⟩
       subst def_l
       simp only [List.mem_cons, Prod.mk.injEq, List.not_mem_nil, or_false] at *
-      cases in_l ; subst_eqs
+      cases in_l; subst_eqs
       have IHα := Dset_progs_in_FL _ _ _ in_D
       have IHβ := Dset_progs_in_FL _ _ _ in_D'
       grind [FLb]
     case neg γ_not_nil =>
       simp_all only [↓reduceIte, List.mem_cons, Prod.mk.injEq, List.not_mem_nil, or_false,
         List.append_eq_nil_iff, List.cons_ne_self, and_self, not_false_eq_true, forall_const]
-      cases in_l ; subst_eqs
+      cases in_l; subst_eqs
       rw [boxes_append]
       right
       left

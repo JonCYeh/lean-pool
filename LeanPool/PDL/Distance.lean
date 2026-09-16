@@ -105,7 +105,7 @@ noncomputable def distance {W} (M : KripkeModel W) (α : Program) (w v : W) : �
   | ?'_ => ite (relate M α w v) 0 ⊤
   | α ⋓ β => (distance M α w v) ⊓ (distance M β w v)
   | ∗α => fdist' M α w v (ENat.toNat <| distance M α · ·)
-  | α ;' β => ⨅ x, distance M α w x + distance M β x v
+  | α;' β => ⨅ x, distance M α w x + distance M β x v
 
 theorem distance_self_star : distance M (∗α) w w = 0 := ciInf_eq_bot_of_bot_mem ⟨.nil α, rfl⟩
 
@@ -123,7 +123,7 @@ theorem dist_iff_rel : (distance M α w v) ≠ ⊤ ↔ relate M α w v :=
   | ?'_ => ite_ne_right_iff.trans <| (iff_self_and.mpr fun _ => ENat.zero_ne_top).symm
   | _ ⋓ _ => (min_eq_top.not.trans not_and_or).trans <| or_congr (dist_iff_rel ..) (dist_iff_rel ..)
   | ∗_ => ENat.iInf_natCast_ne_top.trans <| reachable_iff_star_relate ..
-  | _ ;' _ => iInf_eq_top.not.trans <| not_forall.trans <| exists_congr fun _ =>
+  | _;' _ => iInf_eq_top.not.trans <| not_forall.trans <| exists_congr fun _ =>
     WithTop.add_ne_top.trans <| and_congr (dist_iff_rel ..) (dist_iff_rel ..)
 
 theorem distance_cast : distance M (∗α) w v = fdist M α w v (distance M α · ·) :=
@@ -307,7 +307,7 @@ theorem distance_le_Hdistance (in_D : (X, δ) ∈ Dset α) :
   | _⋓_ => (List.mem_union_iff.mp in_D).elim
     (inf_le_left.trans <| distance_le_Hdistance · ev)
     (inf_le_right.trans <| distance_le_Hdistance · ev)
-  | β ;' β' =>
+  | β;' β' =>
     let ⟨⟨_, δα⟩, in_Dβ, h⟩ := List.exists_of_mem_flatMap in_D
     if c : δα = []
       then by
@@ -322,7 +322,7 @@ theorem distance_le_Hdistance (in_D : (X, δ) ∈ Dset α) :
         let evβ' := conEval.mpr (List.forall_mem_union.mp <| conEval.mp ev).2
         have IHβ' := @distance_le_Hdistance _ _ _ _ v in_Dβ' evβ'
         -- "From these two observations ..."
-        calc  distance M (β ;' β') w v
+        calc  distance M (β;' β') w v
             = distanceList M w v [β, β'] := distance_comp_eq_distList
           _ ≤ distanceList M w v [β'] := c
           _ = distance M β' w v := distance_list_singleton
@@ -332,7 +332,7 @@ theorem distance_le_Hdistance (in_D : (X, δ) ∈ Dset α) :
         let ⟨hX, hδ⟩ := Prod.eq_iff_fst_eq_snd_eq.mp <| List.eq_of_mem_singleton <| h
         let evα := hX.subst (motive := me) ev
         let IHβ x := (distance_le_Hdistance (v := x) in_Dβ evα)
-        calc  distance M (β ;' β') w v
+        calc  distance M (β;' β') w v
           _ ≤ ⨅ i, distance M β w i + distance M β' i v := le_iInf (iInf_le _)
           _ ≤ ⨅ x, distanceList M w x δα + distanceList M x v [β']
               := iInf_mono fun x => add_le_add (IHβ x) <| le_of_eq distance_list_singleton.symm

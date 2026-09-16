@@ -777,7 +777,7 @@ theorem endNodesOf_nonbasic_non_eq {X Y} (lt : LocalTableau X) (X_nonbas : ¬ X.
   have := endNodesOf_basic Y_in
   grind
 
--- upstream me / Haitian? ;-)
+-- upstream me / Haitian?;-)
 lemma IsDershowitzMannaLT.irrefl [Preorder α] [WellFoundedLT α] (X : Multiset α) :
     ¬ Multiset.IsDershowitzMannaLT X X := by
   apply (WellFounded.irrefl (?_)).1

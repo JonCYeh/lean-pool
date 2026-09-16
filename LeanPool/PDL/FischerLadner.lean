@@ -211,7 +211,7 @@ lemma FL_box_cup {φ α β ψ} :
 
 /- Lemma 6.2(iv) -/
 lemma FL_box_seq {φ α β ψ} :
-    (⌈α ;' β⌉ψ) ∈ FL φ → (⌈α⌉⌈β⌉ψ) ∈ FL φ ∧ (⌈β⌉ψ) ∈ FL φ := by
+    (⌈α;' β⌉ψ) ∈ FL φ → (⌈α⌉⌈β⌉ψ) ∈ FL φ ∧ (⌈β⌉ψ) ∈ FL φ := by
   intro hyp
   have := FL_trans hyp
   simp [FL, FLb] at this

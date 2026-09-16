@@ -1400,7 +1400,7 @@ theorem Dset_ne_nil : ∀ (a : Program), Dset a ≠ []
       refine Dset_ne_nil a (List.eq_nil_iff_forall_not_mem.mpr (fun x hx => ?_))
       rw [List.eq_nil_iff_forall_not_mem] at h
       exact h x (by simp [hx])
-  | a ;' b => by
+  | a;' b => by
       simp only [Dset]
       intro h
       rw [List.flatMap_eq_nil_iff] at h
@@ -1464,7 +1464,7 @@ theorem Tableau.exists_isUni {H : History} {X : Sequent} (tab : Tableau H X) :
         -- TRICKY: `lt` and `uniLocalTab` might not have the *same* endNodesOf. But similar-ish?!
         -- Hm, the disjunctions over all endNodes should be equivalent or at least equi-satisfiable?
         -- But note that we can only apply the IH to `lt`.
-        have Y_in_end_lt : Y ∈ endNodesOf lt := TODO ;-)
+        have Y_in_end_lt : Y ∈ endNodesOf lt := TODO;-)
         apply IH Y Y_in_end_lt
       choose next uni_next using hall
       exact ⟨.loc nflprep nbas (uniLocalTab X) next, ⟨uniLocalTab_isUni X, uni_next⟩⟩

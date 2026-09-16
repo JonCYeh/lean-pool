@@ -38,9 +38,9 @@ instance : CoeOut (TP (α ⋓ β)) (TP α) :=
   ⟨fun ℓ τ => ℓ ⟨τ.val, List.mem_append_left _ τ.property⟩⟩
 instance : CoeOut (TP (α ⋓ β)) (TP β) :=
   ⟨fun ℓ τ => ℓ ⟨τ.val, List.mem_append_right _ τ.property⟩⟩
-instance : CoeOut (TP (α ;' β)) (TP α) :=
+instance : CoeOut (TP (α;' β)) (TP α) :=
   ⟨fun ℓ τ => ℓ ⟨τ.val, List.mem_append_left _ τ.property⟩⟩
-instance : CoeOut (TP (α ;' β)) (TP β) :=
+instance : CoeOut (TP (α;' β)) (TP β) :=
   ⟨fun ℓ τ => ℓ ⟨τ.val, List.mem_append_right _ τ.property⟩⟩
 instance : CoeOut (TP (∗α)) (TP α) :=
   ⟨fun l ⟨f,f_in⟩ => l ⟨f, by simp only [testsOfProgram]; exact f_in⟩⟩
@@ -763,7 +763,7 @@ theorem guardToStar (x : Nat) β χ0 χ1 ρ ψ
 theorem localBoxTruth_connector γ ψ :
     (goal : ∀ ℓ, (⌈γ⌉ψ) ⋀ signature γ ℓ ≡ con (Bset γ ℓ ψ) ⋀ signature γ ℓ) →
     (⌈γ⌉ψ) ≡ dis ( (allTP γ).map (fun ℓ => con (Bset γ ℓ ψ)) ) := by
-  -- By the properties of the signature formulas clearly ;-)
+  -- By the properties of the signature formulas clearly;-)
   -- `localBoxTruthI` suffices to prove `localBoxTruth`.
   intro goal W M w
   constructor

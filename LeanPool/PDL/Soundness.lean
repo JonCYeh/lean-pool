@@ -1308,7 +1308,7 @@ theorem loadedDiamondPaths (α : Program) (αs : List Program) {X : Sequent}
       have nodeAt_s_def : nodeAt s1 = Y := congrArg (fun z => z.2.1) tabAt_s_def
       have v_s1 : (M, v) ⊨ nodeAt s1 := nodeAt_s_def.symm ▸ w_Y
       have negLoad_in_s : (~''((⌊·a⌋AnyFormula.loadBoxes αs φ))).inSide side (nodeAt s1) := by
-        unfold nodeAt ; rw [tabAt_s_def]
+        unfold nodeAt; rw [tabAt_s_def]
         simp_all
       -- NOW: do cases on s1, s1 can NOT be a local tableau,
       cases next_def : (next Y Y_in)
@@ -1341,7 +1341,7 @@ theorem loadedDiamondPaths (α : Program) (αs : List Program) {X : Sequent}
               simp_all only [AnyFormula.loadBoxes_cons, relate, distance, ↓reduceIte]
               have := distance_list_iff_relate_Seq.2 u_αs_w
               cases dist_list_def : (distanceList M u w (β :: βs))
-              · exfalso ; exact this dist_list_def
+              · exfalso; exact this dist_list_def
               · have := ENat.natCast_one
                 rw [←this]
                 simp only [←ENat.natCast_add, ENat.natCast_lt_natCast, lt_add_iff_pos_left,
@@ -1448,7 +1448,7 @@ theorem loadedDiamondPaths (α : Program) (αs : List Program) {X : Sequent}
           simp_all only [relate]
           have := distance_list_iff_relate_Seq.2 u_αs_w
           cases dist_list_def : (distanceList M u w (β :: βs))
-          · exfalso ; exact this dist_list_def
+          · exfalso; exact this dist_list_def
           case coe n =>
             simp only [distance, relate, v_α_u, ↓reduceIte, gt_iff_lt]
             have := ENat.natCast_one

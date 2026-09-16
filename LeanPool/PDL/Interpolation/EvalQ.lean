@@ -14,7 +14,7 @@ This file collects the notions needed for Lemmas 10.6, 10.7 and 10.8 in
 * `QFormula.evalQ`, the evaluation of a Q-formula with an assignment for the internal
   variables, together with `QFormula.evalQ_gfp_unfold`, the unfolding of the fixpoint used
   at a companion node,
-* `Sequent.loadedSplit` and friends, which read off the loaded formula `¬⌊δ⃗⌋ψ` of a
+* `Sequent.loadedSplit` and friends, which read off the loaded formula `¬⌊δs⌋ψ` of a
   sequent,
 * `witDist`, the witness distance `wd_M(v,x)` of the proof of Lemma 10.7, and
 * `QuasiTab.BasicBetween`, the paper's "there is a basic node between `x` and `z`".

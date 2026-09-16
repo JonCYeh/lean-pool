@@ -288,7 +288,7 @@ def buildTree (s : Strategy tableauGame Builder) {H X p}
             apply winning_of_winning_move
             exact stillWin ⟨_, X, Sum.inr (BuilderPos.ltab nrep nbas (uniLocalTab X))⟩ Move.prLocTab
           | .inr mY_BP =>
-              exfalso -- fingers crossed ;-)
+              exfalso -- fingers crossed;-)
               subst H'_def
               -- (This is different than above, cannot use `posOf_eq_inr_then_lpr` immediately.)
               -- OLD IDEA: mY is result of Move.buEnd, so if mY is a BuilderPos then it is an lpr.

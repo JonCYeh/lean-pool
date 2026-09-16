@@ -238,7 +238,7 @@ private theorem localLoadedDiamondList_leftNested {W : Type} {M : KripkeModel W}
       NegLoadFormula.neg.injEq, true_and]
     exact ⟨F, δ, in_D, rfl, rfl⟩
   cases δ
-  case nil => -- δ is empty, is this the easy or the hard case? ;-)
+  case nil => -- δ is empty, is this the easy or the hard case?;-)
     simp only [relateSeq_nil] at v_δ_u v_F -- Here we have v = u.
     subst v_δ_u
     cases αs
@@ -345,7 +345,7 @@ private theorem localLoadedDiamondList_leftNested {W : Type} {M : KripkeModel W}
       have ⟨a, d_atom⟩ : ∃ a, d = ((·a) : Program) := by
         have := Dset_mem_sequence α in_D
         rcases this with inl | ⟨a, ⟨δ, list_prop⟩⟩
-        · exfalso ; simp_all
+        · exfalso; simp_all
         · refine ⟨a, by simp_all⟩
       subst d_atom
       -- Hence `Dl (d :: ...)` does not actually unfold anything.
@@ -524,7 +524,7 @@ private theorem localLoadedDiamondList_leftNormal {W : Type} {M : KripkeModel W}
       have ⟨a, d_atom⟩ : ∃ a, d = ((·a) : Program) := by
         have := Dset_mem_sequence α in_D
         rcases this with inl | ⟨a, ⟨δ, list_prop⟩⟩
-        · exfalso ; simp_all
+        · exfalso; simp_all
         · refine ⟨a, by simp_all⟩
       subst d_atom
       -- Hence `Dl (d :: ...)` does not actually unfold anything.
@@ -603,7 +603,7 @@ private theorem localLoadedDiamondList_rightNested {W : Type} {M : KripkeModel W
       NegLoadFormula.neg.injEq, true_and]
     exact ⟨F, δ, in_D, rfl, rfl⟩
   cases δ
-  case nil => -- δ is empty, is this the easy or the hard case? ;-)
+  case nil => -- δ is empty, is this the easy or the hard case?;-)
     simp only [relateSeq_nil] at v_δ_u v_F -- Here we have v = u.
     subst v_δ_u
     cases αs
@@ -713,7 +713,7 @@ private theorem localLoadedDiamondList_rightNested {W : Type} {M : KripkeModel W
       have ⟨a, d_atom⟩ : ∃ a, d = ((·a) : Program) := by
         have := Dset_mem_sequence α in_D
         rcases this with inl | ⟨a, ⟨δ, list_prop⟩⟩
-        · exfalso ; simp_all
+        · exfalso; simp_all
         · refine ⟨a, by simp_all⟩
       subst d_atom
       -- Hence `Dl (d :: ...)` does not actually unfold anything.
@@ -893,7 +893,7 @@ private theorem localLoadedDiamondList_rightNormal {W : Type} {M : KripkeModel W
       have ⟨a, d_atom⟩ : ∃ a, d = ((·a) : Program) := by
         have := Dset_mem_sequence α in_D
         rcases this with inl | ⟨a, ⟨δ, list_prop⟩⟩
-        · exfalso ; simp_all
+        · exfalso; simp_all
         · refine ⟨a, by simp_all⟩
       subst d_atom
       -- Hence `Dl (d :: ...)` does not actually unfold anything.
@@ -1008,7 +1008,7 @@ theorem localLoadedDiamondList (αs : List Program) {X : Sequent}
           rw [same_dist, dist_iff_rel]
           exact v_α_u
         simp only [conEval] at v_F
-        cases lrule -- dia or dia' annoyance ;-)
+        cases lrule -- dia or dia' annoyance;-)
         case dia α' χ' α'_not_atomic =>
           exact localLoadedDiamondList_leftNested φ w_nξ α αs v_αs_w L R O C
             v_t negLoad_in no_other_loading u v_α_u u_αs_w u_picked_minimally F δ in_D
@@ -1036,7 +1036,7 @@ theorem localLoadedDiamondList (αs : List Program) {X : Sequent}
           rw [same_dist, dist_iff_rel]
           exact v_α_u
         simp only [conEval] at v_F
-        cases lrule -- dia or dia' annoyance ;-)
+        cases lrule -- dia or dia' annoyance;-)
         case dia α' χ' α'_not_atomic =>
           exact localLoadedDiamondList_rightNested φ w_nξ α αs v_αs_w L R O C
             v_t negLoad_in no_other_loading u v_α_u u_αs_w u_picked_minimally F δ in_D

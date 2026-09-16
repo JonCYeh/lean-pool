@@ -345,7 +345,7 @@ lemma flprep_flip {Hist} :
       right
       exact ⟨this⟩
 
-/-- (┛ಠ_ಠ)┛彡┻━┻ -/
+/-- Exchange the left and right sides throughout a tableau. -/
 def Tableau.flip {Hist X} : Tableau Hist X → Tableau (Hist.map Sequent.flip) X.flip
 | .loc nflprep nbas lt next =>  .loc (by simp only [flprep_flip]; exact nflprep)
                                   (by simp only [basic_flip]; exact nbas)

@@ -208,7 +208,7 @@ lemma PreState.loadedDiamondExistence {X} {bt : BuildTree [] X} {α : Program} {
 
 /-! ## The free diamond existence lemma (Lemma 6.19)
 
-To load a free diamond `~⌌·a⌍chi` with the rule `(L+)` we first have to make the sequent free
+To load a free diamond `~⌈·a⌉χ` with the rule `(L+)` we first have to make the sequent free
 using `(L-)`, and on the way we may have to go to the companion of a free repeat. -/
 
 /-- A sequent with fewer formulas on the two sides is not closed either.
@@ -241,7 +241,7 @@ lemma PdlRule.exists_freeStep {Z : Sequent} (hZ : Z.O ≠ none) :
       Finset.mem_singleton] at hf ⊢
     tauto
 
-/-- Applying the rule `(L+)` to load a free diamond `~⌌·a⌍chi` maximally, using `boxesOf`. -/
+/-- Applying the rule `(L+)` to load a free diamond `~⌈·a⌉χ` maximally, using `boxesOf`. -/
 lemma PdlRule.exists_loadStep {L R : Finset Formula} {a : Nat} {χ : Formula}
     (bas : Sequent.basic ⟨L, R, none⟩) (hmem : (~⌈·a⌉χ) ∈ L ∪ R) :
     ∃ Y : Sequent, Nonempty (PdlRule ⟨L, R, none⟩ Y) ∧ Y.basic

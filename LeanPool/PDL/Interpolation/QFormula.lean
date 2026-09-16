@@ -15,7 +15,7 @@ of the quasi-tableau `Q`, using only conjunction and (sequences of) boxes.
 Instead of using fresh proposition letters for the internal variables we use a separate
 constructor `QFormula.var` of a new data type `QFormula Var`, where `Var` is the type of
 internal variables. This makes the side condition of Definition 9.15 — that the
-vocabulary of the ordinary formulas `ψ` and of the programs `α⃗` contains no internal
+vocabulary of the ordinary formulas `ψ` and of the programs `αs` contains no internal
 variables — true by construction, and it avoids having to pick fresh proposition letters.
 
 To read a `QFormula` as an actual `Formula` one has to say what the internal variables
@@ -30,9 +30,9 @@ namespace PDL
 /-! ## Definition 9.15: the language `L_Q` -/
 
 /-- Def 9.15: the set `L_Q` of *Q-formulas*, given by the grammar
-`ι ::= ψ | q | ι ∧ ι | □(α⃗, ι)`.
+`ι ::= ψ | q | ι ∧ ι | □(αs, ι)`.
 Here `Var` is the type of internal variables, i.e. the paper's `{ q_x | x ∈ K_Q }`.
-The side condition that `ψ` and `α⃗` contain no internal variables is automatic here
+The side condition that `ψ` and `αs` contain no internal variables is automatic here
 because internal variables are not `Formula`s. -/
 inductive QFormula (Var : Type) : Type
   /-- An ordinary formula `ψ`, containing no internal variables. -/
@@ -41,7 +41,7 @@ inductive QFormula (Var : Type) : Type
   | var : Var → QFormula Var
   /-- A conjunction `ι₁ ∧ ι₂`. -/
   | and : QFormula Var → QFormula Var → QFormula Var
-  /-- A box `□(α⃗, ι)` over a sequence of programs. -/
+  /-- A box `□(αs, ι)` over a sequence of programs. -/
   | boxes : List Program → QFormula Var → QFormula Var
   deriving Repr, DecidableEq
 
@@ -103,7 +103,7 @@ end QFormula
 
 /-! ## Simple Q-formulas and Definition 9.16: the normal form -/
 
-/-- A *simple* Q-formula (Def 9.15): either an ordinary formula `ψ` or a box `□(α⃗, q_x)`
+/-- A *simple* Q-formula (Def 9.15): either an ordinary formula `ψ` or a box `□(αs, q_x)`
 over an internal variable. -/
 inductive QSimple (Var : Type) : Type
   | fma : Formula → QSimple Var
@@ -139,7 +139,7 @@ def mentions [DecidableEq Var] (x : Var) : QSimple Var → Bool
   | .fma _ => false
   | .boxVar _ q => q = x
 
-/-- If the simple Q-formula is `□(α⃗, q_x)` then return the program `α⃗` as one program. -/
+/-- If the simple Q-formula is `□(αs, q_x)` then return the program `αs` as one program. -/
 def progToOpt [DecidableEq Var] (x : Var) : QSimple Var → Option Program
   | .fma _ => none
   | .boxVar as q => if q = x then some (Program.steps as) else none

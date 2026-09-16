@@ -119,7 +119,7 @@ lemma Formula.neq_neg_self (φ : Formula) : φ ≠ ~φ := by
 -- Note: to make `decide` work we use `decidable_of_decidable_of_iff`.
 instance : DecidablePred Program.isAtomic
 | ·_ => decidable_of_decidable_of_iff (by simp [Program.isAtomic] : True ↔ _)
-| _ ;' _ => decidable_of_decidable_of_iff (by simp [Program.isAtomic] : False ↔ _)
+| _;' _ => decidable_of_decidable_of_iff (by simp [Program.isAtomic] : False ↔ _)
 | a ⋓ _ => decidable_of_decidable_of_iff (by simp [Program.isAtomic] : False ↔ _)
 | ∗_ => decidable_of_decidable_of_iff (by simp [Program.isAtomic] : False ↔ _)
 | ?'_ => decidable_of_decidable_of_iff (by simp [Program.isAtomic] : False ↔ _)
@@ -323,7 +323,7 @@ scoped notation "~''" φ:arg => AnyNegFormula.neg φ
 def negUnload : NegLoadFormula → Formula
 | NegLoadFormula.neg χ => ~ χ.unload
 
-example : NegLoadFormula := ~'(⌊((·1) ;' (·2))⌋(⊤ : Formula))
+example : NegLoadFormula := ~'(⌊((·1);' (·2))⌋(⊤ : Formula))
 example : NegLoadFormula := ~'(⌊⌊[·1, ·2]⌋⌋⌊·1⌋(⊤ : Formula))
 
 theorem loadBoxes_append {as bs P} :
@@ -709,7 +709,7 @@ mutual
     | α;'β => 1 + lengthOfProgram α + lengthOfProgram β
     | α⋓β => 1 + lengthOfProgram α + lengthOfProgram β
     | ∗α => 1 + lengthOfProgram α
-    | ?'φ => 2 + lengthOfFormula φ -- 2 not 1, to make F^ℓ go down ;-)
+    | ?'φ => 2 + lengthOfFormula φ -- 2 not 1, to make F^ℓ go down;-)
   /-- The syntactic length of a formula, mutually defined with program length. -/
   @[simp, implicit_reducible]
   def lengthOfFormula : Formula → Nat

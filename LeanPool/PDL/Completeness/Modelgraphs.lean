@@ -29,7 +29,7 @@ def Q {W : Finset (Finset Formula)} (R : Nat → W → W → Prop)
 | ·c     => R c
 | ?'τ    => fun v w => v = w ∧ τ ∈ v.1
 | α ⋓ β  => fun v w => Q R α v w ∨ Q R β v w
-| α ;' β => Relation.Comp (Q R α) (Q R β)
+| α;' β => Relation.Comp (Q R α) (Q R β)
 | ∗ α    => Relation.ReflTransGen (Q R α)
 
 end Modelgraphs
@@ -371,7 +371,7 @@ theorem loadedTruthLemmaProg {Worlds} (MG : ModelGraph Worlds) α :
     have X_F : ∀ τ ∈ F _ (α_def ▸ ℓ), evaluate MG.val X τ := by
       intro τ τ_in
       -- Now we use IH of C2 on the tests in a
-      -- NOTE: for this (in the test case, not sequence) we tweaked `lengthOfProgram (?'φ)` ;-)
+      -- NOTE: for this (in the test case, not sequence) we tweaked `lengthOfProgram (?'φ)`;-)
       have _forTermination : lengthOfFormula τ < lengthOfProgram _ := F_goes_down τ_in
       have := loadedTruthLemma MG X τ
       subst α_def

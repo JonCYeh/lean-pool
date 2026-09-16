@@ -98,7 +98,7 @@ theorem repl_in_P_non_occ_eq {x α ρ} :
   case union β γ =>
     constructor <;> (apply repl_in_P_non_occ_eq; tauto)
   case star β =>
-    apply repl_in_P_non_occ_eq ; tauto
+    apply repl_in_P_non_occ_eq; tauto
   case test φ =>
     apply repl_in_F_non_occ_eq; tauto
 end

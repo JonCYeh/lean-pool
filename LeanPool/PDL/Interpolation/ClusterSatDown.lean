@@ -495,7 +495,7 @@ lemma satDown_two {Δ y ys} (hx : C.Q.atOpt x = some (.QNode .two Δ (y :: ys)))
     Y, u, h1, h2, h3, h4, fun hbb => h5 (hbb.child (QuasiTab.prefix_of_mem_cycs hz) (by simp)
       (QuasiTab.notBasic_of_typ_ne hx (by simp)))⟩
 
-/-- Case `k(x) = 3` with `Δ_x` basic: the loaded formula is `¬⌊a γ⃗⌋ψ` with `a` atomic and
+/-- Case `k(x) = 3` with `Δ_x` basic: the loaded formula is `¬⌊a γs⌋ψ` with `a` atomic and
 `ι_x = [a]ι_y`. Going to a state `v'` at minimal witness distance decreases the witness
 distance by exactly one. -/
 lemma satDown_three_basic {Δ Y y ys} (hS : C.SatDownFacts) (hΔ : Δ ∈ C.lambdaTwo)
@@ -513,7 +513,7 @@ lemma satDown_three_basic {Δ Y y ys} (hS : C.SatDownFacts) (hΔ : Δ ∈ C.lamb
   obtain ⟨A, Y', hstep', hprog, hprogs, hfma, hproj⟩ := hS.basicStep Δ hΔ hb
   have hYY : Y' = Y := by rw [hstep] at hstep'; simp at hstep'; exact hstep'.symm
   rw [hYY] at hprogs hfma hproj
-  -- the loaded formula `¬⌈⌈a γ⃗⌉⌉ψ` holds at `v`
+  -- the loaded formula `¬⌈⌈a γs⌉⌉ψ` holds at `v`
   have hloaded : evaluate M v (~⌈⌈Δ.loadedProgs⌉⌉Δ.loadedFma) :=
     hZ _ (Sequent.negBoxes_mem_right (hS.rightLoaded Δ hΔ))
   simp only [evaluate] at hloaded

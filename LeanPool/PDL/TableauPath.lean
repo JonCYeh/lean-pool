@@ -280,7 +280,7 @@ theorem loc_edge_loc_iff_edge {Y X} {lt : LocalTableau X} {Y_in : Y ∈ endNodes
 theorem pdl_edge_pdl_iff_edge {X Y} {r : PdlRule X Y} {tail : List Sequent}
     {next : Tableau (X :: tail) Y} {nrep bas} {t s : PathIn next}
     : (.pdl t : PathIn (.pdl nrep bas r next)) ⋖_ (.pdl s) ↔ t ⋖_ s := by
-  -- exact same proof as `loc_edge_loc_iff_edge` ;-)
+  -- exact same proof as `loc_edge_loc_iff_edge`;-)
   constructor
   · rintro ( ⟨Hist, X, nrep, nbas, lt, next, Y, Y_in, tab_def, p_def⟩
            | ⟨Hist, X, nrep, bas, Y, r, next, tab_def, p_def⟩ )
@@ -1148,7 +1148,7 @@ theorem rewind_of_edge_is_eq {Hist X} {tab : Tableau Hist X} {a b : PathIn tab} 
             at *
         rw [kdef, @Nat.one_mod_eq_one]
         aesop
-  case lrep => cases b ; simp [not_edge_nil] at a_b
+  case lrep => cases b; simp [not_edge_nil] at a_b
 
 theorem rewind_order_reversing_if_not_nil {Hist X} {tab : Tableau Hist X} {t : PathIn tab}
     {k k' : Fin (List.length t.toHistory + 1)} (h : k < k') (h' : t ≠ PathIn.nil) :
@@ -1471,7 +1471,7 @@ theorem rewind_helper {Hist X} {tab : Tableau Hist X} {a b : PathIn tab} {k : Fi
             Nat.add_right_cancel_iff, Fin.val_succ, Fin.val_cast] at *
           cases kdef
           simp
-  case lrep => cases b ; simp [not_edge_nil] at a_b
+  case lrep => cases b; simp [not_edge_nil] at a_b
 
 -- unique existence?
 theorem exists_rewind_of_le {Hist X} {tab : Tableau Hist X} {a b : PathIn tab} (h : a ≤ b) : ∃ k,

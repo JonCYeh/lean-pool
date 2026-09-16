@@ -565,7 +565,7 @@ lemma mem_theMoves_of_move {pos next} :
     grind
 
 lemma move.hist {Hist next pos} (mov : move ⟨Hist, X, pos⟩ next) :
-      (∃ newPos, next = ⟨Hist, X, newPos⟩) -- this is for the annoying `prLocTab` case ;-)
+      (∃ newPos, next = ⟨Hist, X, newPos⟩) -- this is for the annoying `prLocTab` case;-)
     ∨ (∃ Y newPos, next = ⟨X :: Hist, Y, newPos⟩)  := by
   rcases mov with ⟨mov⟩
   cases mov
