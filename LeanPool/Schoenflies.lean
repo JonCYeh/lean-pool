@@ -143,3 +143,14 @@ Main declarations: `Schoenflies.jordan_schoenflies_of_homeomorph`
 Tags: jordan-curve, schoenflies-theorem, geometric-topology, homeomorphism
 MSC: 57K10, 54C25
 -/
+
+/-!
+## Proof provenance
+
+The pinned upstream `formalization.yaml` at commit
+`05a43d29cde026618777db3d4e4316204ccca237` records that AI coding agents produced the Lean
+formalization under Álvaro Begué's mathematical direction and integration. It credits him with
+selecting the source, architecture, statement targets, and integration decisions. The registry
+therefore classifies proof provenance as `AI` under Lean Pool's rubric; mathematical authorship
+and direction remain credited to Begué.
+-/

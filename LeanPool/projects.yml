@@ -8521,7 +8521,7 @@ projects:
       commit: 05a43d29cde026618777db3d4e4316204ccca237
     license: Apache-2.0
     status: verified
-    provenance: mix
+    provenance: AI
     main_declarations:
       - Schoenflies.jordan_schoenflies_of_homeomorph
     main_results:
