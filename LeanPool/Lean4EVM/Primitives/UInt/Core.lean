@@ -40,7 +40,7 @@ def ofNat (n : ℕ) : α :=
   FixedUInt.ofBitVec (BitVec.ofNat width n)
 
 /-- Constructs a value when `n` fits in `width` bits. -/
-def ofNat? (n : ℕ) : Option α :=
+def ofNatOpt (n : ℕ) : Option α :=
   if n < modulus width then some (ofNat n) else none
 
 /-- Constructs a value from an integer using two's-complement wrapping. -/
@@ -48,7 +48,7 @@ def ofInt (n : ℤ) : α :=
   FixedUInt.ofBitVec (BitVec.ofInt width n)
 
 /-- Constructs a value when `n` is nonnegative and fits in `width` bits. -/
-def ofInt? (n : ℤ) : Option α :=
+def ofIntOpt (n : ℤ) : Option α :=
   if 0 ≤ n ∧ n < (modulus width : ℤ) then some (ofNat n.toNat) else none
 
 /-- Returns the unsigned natural-number value. -/
@@ -428,30 +428,30 @@ theorem toNat_lt_modulus (value : α) : toNat value < modulus width :=
   (FixedUInt.toBitVec value).isLt
 
 /-- Checked natural construction succeeds exactly for representable values. -/
-theorem ofNat?_eq_some_iff {n : ℕ} {value : α} :
-    ofNat? n = some value ↔ n < modulus width ∧ ofNat n = value := by
-  simp only [ofNat?]
+theorem ofNatOpt_eq_some_iff {n : ℕ} {value : α} :
+    ofNatOpt n = some value ↔ n < modulus width ∧ ofNat n = value := by
+  simp only [ofNatOpt]
   split <;> simp_all
 
 /-- Checked natural construction rejects exactly the out-of-range values. -/
 @[simp]
-theorem ofNat?_eq_none_iff (n : ℕ) :
-    (ofNat? n : Option α) = none ↔ modulus width ≤ n := by
-  simp [ofNat?]
+theorem ofNatOpt_eq_none_iff (n : ℕ) :
+    (ofNatOpt n : Option α) = none ↔ modulus width ≤ n := by
+  simp [ofNatOpt]
 
 /-- Checked integer construction succeeds exactly for nonnegative representable values. -/
-theorem ofInt?_eq_some_iff {n : ℤ} {value : α} :
-    ofInt? n = some value ↔
+theorem ofIntOpt_eq_some_iff {n : ℤ} {value : α} :
+    ofIntOpt n = some value ↔
       0 ≤ n ∧ n < (modulus width : ℤ) ∧ ofNat n.toNat = value := by
-  simp only [ofInt?]
+  simp only [ofIntOpt]
   split <;> simp_all
 
 /-- Checked integer construction rejects negative and out-of-range values. -/
 @[simp]
-theorem ofInt?_eq_none_iff (n : ℤ) :
-    (ofInt? n : Option α) = none ↔
+theorem ofIntOpt_eq_none_iff (n : ℤ) :
+    (ofIntOpt n : Option α) = none ↔
       n < 0 ∨ (modulus width : ℤ) ≤ n := by
-  simp only [ofInt?]
+  simp only [ofIntOpt]
   split_ifs with h
   · simp only [false_iff]
     exact not_or_intro (not_lt.mpr h.1) (not_le.mpr h.2)

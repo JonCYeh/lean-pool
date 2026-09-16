@@ -17,11 +17,11 @@ namespace U64
 /-- Constructs a `U64` by retaining the low 64 bits. -/
 abbrev ofNat (n : ℕ) : U64 := FixedUInt.ofNat n
 /-- Constructs a `U64` only when `n` fits in 64 bits. -/
-abbrev ofNat? (n : ℕ) : Option U64 := FixedUInt.ofNat? n
+abbrev ofNatOpt (n : ℕ) : Option U64 := FixedUInt.ofNatOpt n
 /-- Constructs a `U64` with two's-complement wrapping. -/
 abbrev ofInt (n : ℤ) : U64 := FixedUInt.ofInt n
 /-- Constructs a `U64` only from a representable nonnegative integer. -/
-abbrev ofInt? (n : ℤ) : Option U64 := FixedUInt.ofInt? n
+abbrev ofIntOpt (n : ℤ) : Option U64 := FixedUInt.ofIntOpt n
 /-- Returns the unsigned value. -/
 abbrev toNat (value : U64) : ℕ := FixedUInt.toNat value
 /-- Reinterprets the bits as a signed two's-complement integer. -/

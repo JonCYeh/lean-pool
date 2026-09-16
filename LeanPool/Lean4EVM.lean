@@ -13,9 +13,7 @@ import LeanPool.Lean4EVM.Primitives.FixedBytes
 Source: url:https://github.com/mrLSD/Lean4EVM
 Authors: mrLSD
 Status: verified
-Main declarations: `Lean4EVM.FixedUInt.toNat_add`, `Lean4EVM.FixedUInt.toNat_mul`,
-`Lean4EVM.U256.toNat_addmod`, `Lean4EVM.U256.toNat_mulmod`,
-`Lean4EVM.U256.toNat_byteAt_of_lt`
+Main declarations: `Lean4EVM.FixedUInt.toNat_add`, `Lean4EVM.FixedUInt.toNat_mul`, `Lean4EVM.U256.toNat_addmod`, `Lean4EVM.U256.toNat_mulmod`, `Lean4EVM.U256.toNat_byteAt_of_lt`
 Tags: verified-algorithms, ethereum, fixed-width-arithmetic, blockchain-semantics
 MSC: 68Q60, 68V20
 -/
@@ -27,4 +25,6 @@ Lean definitions of Ethereum EVM and their verified executable operations.
 
 `Primitives.UInt` and `Primitives.FixedBytes` are family façades. Their `Core` modules own shared
 representations and proofs; modules named after public types own width- or meaning-specific APIs.
+Optional conversions use the suffix `Opt` so the repository declaration audit resolves their full
+names distinctly from the wrapping conversions.
 -/

@@ -37,8 +37,8 @@ def ofNat (n : ℕ) : H160 :=
   ofFixedBytes (FixedBytes.ofNat 20 n)
 
 /-- Constructs `H160` only when `n` fits in 160 bits. -/
-def ofNat? (n : ℕ) : Option H160 :=
-  (FixedBytes.ofNat? 20 n).map ofFixedBytes
+def ofNatOpt (n : ℕ) : Option H160 :=
+  (FixedBytes.ofNatOpt 20 n).map ofFixedBytes
 
 /-- Returns the unsigned natural-number value. -/
 def toNat (value : H160) : ℕ :=
@@ -57,8 +57,8 @@ def testBit (value : H160) (index : ℕ) : Bool :=
   value.toFixedBytes.testBit index
 
 /-- Parses an exact 20-byte big-endian array. -/
-def ofByteArray? (bytes : ByteArray) : Option H160 :=
-  (FixedBytes.ofByteArray? 20 bytes).map ofFixedBytes
+def ofByteArrayOpt (bytes : ByteArray) : Option H160 :=
+  (FixedBytes.ofByteArrayOpt 20 bytes).map ofFixedBytes
 
 /-- Serializes `value` as exactly 20 big-endian bytes. -/
 def toByteArray (value : H160) : ByteArray :=
@@ -206,13 +206,13 @@ theorem lt_iff_toNat_lt (a b : H160) : a < b ↔ a.toNat < b.toNat :=
 
 /-- Checked construction fails exactly outside the 160-bit range. -/
 @[simp]
-theorem ofNat?_eq_none_iff (n : ℕ) : ofNat? n = none ↔ 2 ^ 160 ≤ n := by
-  simp [ofNat?, FixedBytes.modulus, FixedBytes.bitWidth]
+theorem ofNatOpt_eq_none_iff (n : ℕ) : ofNatOpt n = none ↔ 2 ^ 160 ≤ n := by
+  simp [ofNatOpt, FixedBytes.modulus, FixedBytes.bitWidth]
 
 /-- Checked construction succeeds exactly for representable 160-bit values. -/
-theorem ofNat?_eq_some_iff {n : ℕ} {value : H160} :
-    ofNat? n = some value ↔ n < 2 ^ 160 ∧ ofNat n = value := by
-  simp [ofNat?, ofNat, FixedBytes.ofNat?_eq_some_iff, FixedBytes.modulus,
+theorem ofNatOpt_eq_some_iff {n : ℕ} {value : H160} :
+    ofNatOpt n = some value ↔ n < 2 ^ 160 ∧ ofNat n = value := by
+  simp [ofNatOpt, ofNat, FixedBytes.ofNatOpt_eq_some_iff, FixedBytes.modulus,
     FixedBytes.bitWidth]
 
 /-- Serialization always emits 20 bytes. -/
@@ -222,22 +222,22 @@ theorem toByteArray_size (value : H160) : value.toByteArray.size = 20 := by
 
 /-- Parsing succeeds exactly for 20-byte arrays. -/
 @[simp]
-theorem ofByteArray?_isSome (bytes : ByteArray) :
-    (ofByteArray? bytes).isSome = decide (bytes.size = 20) := by
-  simp [ofByteArray?]
+theorem ofByteArrayOpt_isSome (bytes : ByteArray) :
+    (ofByteArrayOpt bytes).isSome = decide (bytes.size = 20) := by
+  simp [ofByteArrayOpt]
 
 /-- Parsing a serialized `H160` value is lossless. -/
 @[simp]
-theorem ofByteArray?_toByteArray (value : H160) :
-    ofByteArray? value.toByteArray = some value := by
-  simp [ofByteArray?, toByteArray]
+theorem ofByteArrayOpt_toByteArray (value : H160) :
+    ofByteArrayOpt value.toByteArray = some value := by
+  simp [ofByteArrayOpt, toByteArray]
 
 /-- Serializing any successfully parsed `H160` input reproduces that input. -/
-theorem toByteArray_ofByteArray?_eq_some {bytes : ByteArray} {value : H160}
-    (h : ofByteArray? bytes = some value) : value.toByteArray = bytes := by
-  simp only [ofByteArray?, Option.map_eq_some_iff] at h
+theorem toByteArray_ofByteArrayOpt_eq_some {bytes : ByteArray} {value : H160}
+    (h : ofByteArrayOpt bytes = some value) : value.toByteArray = bytes := by
+  simp only [ofByteArrayOpt, Option.map_eq_some_iff] at h
   rcases h with ⟨raw, hraw, rfl⟩
-  exact FixedBytes.toByteArray_ofByteArray?_eq_some hraw
+  exact FixedBytes.toByteArray_ofByteArrayOpt_eq_some hraw
 
 end H160
 

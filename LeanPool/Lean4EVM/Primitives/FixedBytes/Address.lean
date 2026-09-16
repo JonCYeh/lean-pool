@@ -38,8 +38,8 @@ def ofNat (n : ℕ) : Address :=
   ofFixedBytes (FixedBytes.ofNat 20 n)
 
 /-- Constructs an address only when `n` fits in 160 bits. -/
-def ofNat? (n : ℕ) : Option Address :=
-  (FixedBytes.ofNat? 20 n).map ofFixedBytes
+def ofNatOpt (n : ℕ) : Option Address :=
+  (FixedBytes.ofNatOpt 20 n).map ofFixedBytes
 
 /-- Returns the unsigned 160-bit address value. -/
 def toNat (value : Address) : ℕ :=
@@ -58,8 +58,8 @@ def testBit (value : Address) (index : ℕ) : Bool :=
   value.toFixedBytes.testBit index
 
 /-- Parses an exact 20-byte big-endian address payload. -/
-def ofByteArray? (bytes : ByteArray) : Option Address :=
-  (FixedBytes.ofByteArray? 20 bytes).map ofFixedBytes
+def ofByteArrayOpt (bytes : ByteArray) : Option Address :=
+  (FixedBytes.ofByteArrayOpt 20 bytes).map ofFixedBytes
 
 /-- Serializes the address as exactly 20 big-endian bytes. -/
 def toByteArray (value : Address) : ByteArray :=
@@ -82,8 +82,8 @@ def ofU256 (value : U256) : Address :=
   ofNat value.toNat
 
 /-- Converts an EVM word to an address only when its high 96 bits are zero. -/
-def ofU256? (value : U256) : Option Address :=
-  ofNat? value.toNat
+def ofU256Opt (value : U256) : Option Address :=
+  ofNatOpt value.toNat
 
 /-- Zero-extends an address to an EVM word. -/
 def toU256 (value : Address) : U256 :=
@@ -177,13 +177,13 @@ theorem toNat_max : max.toNat = 2 ^ 160 - 1 := by
 
 /-- Checked construction fails exactly outside the 160-bit range. -/
 @[simp]
-theorem ofNat?_eq_none_iff (n : ℕ) : ofNat? n = none ↔ 2 ^ 160 ≤ n := by
-  simp [ofNat?, FixedBytes.modulus, FixedBytes.bitWidth]
+theorem ofNatOpt_eq_none_iff (n : ℕ) : ofNatOpt n = none ↔ 2 ^ 160 ≤ n := by
+  simp [ofNatOpt, FixedBytes.modulus, FixedBytes.bitWidth]
 
 /-- Checked construction succeeds exactly for representable address values. -/
-theorem ofNat?_eq_some_iff {n : ℕ} {value : Address} :
-    ofNat? n = some value ↔ n < 2 ^ 160 ∧ ofNat n = value := by
-  simp [ofNat?, ofNat, FixedBytes.ofNat?_eq_some_iff, FixedBytes.modulus,
+theorem ofNatOpt_eq_some_iff {n : ℕ} {value : Address} :
+    ofNatOpt n = some value ↔ n < 2 ^ 160 ∧ ofNat n = value := by
+  simp [ofNatOpt, ofNat, FixedBytes.ofNatOpt_eq_some_iff, FixedBytes.modulus,
     FixedBytes.bitWidth]
 
 /-- Unsigned order agrees with order on natural-number values. -/
@@ -203,22 +203,22 @@ theorem toByteArray_size (value : Address) : value.toByteArray.size = 20 := by
 
 /-- Parsing succeeds exactly for 20-byte arrays. -/
 @[simp]
-theorem ofByteArray?_isSome (bytes : ByteArray) :
-    (ofByteArray? bytes).isSome = decide (bytes.size = 20) := by
-  simp [ofByteArray?]
+theorem ofByteArrayOpt_isSome (bytes : ByteArray) :
+    (ofByteArrayOpt bytes).isSome = decide (bytes.size = 20) := by
+  simp [ofByteArrayOpt]
 
 /-- Parsing a serialized address is lossless. -/
 @[simp]
-theorem ofByteArray?_toByteArray (value : Address) :
-    ofByteArray? value.toByteArray = some value := by
-  simp [ofByteArray?, toByteArray]
+theorem ofByteArrayOpt_toByteArray (value : Address) :
+    ofByteArrayOpt value.toByteArray = some value := by
+  simp [ofByteArrayOpt, toByteArray]
 
 /-- Serializing any successfully parsed address reproduces that input. -/
-theorem toByteArray_ofByteArray?_eq_some {bytes : ByteArray} {value : Address}
-    (h : ofByteArray? bytes = some value) : value.toByteArray = bytes := by
-  simp only [ofByteArray?, Option.map_eq_some_iff] at h
+theorem toByteArray_ofByteArrayOpt_eq_some {bytes : ByteArray} {value : Address}
+    (h : ofByteArrayOpt bytes = some value) : value.toByteArray = bytes := by
+  simp only [ofByteArrayOpt, Option.map_eq_some_iff] at h
   rcases h with ⟨raw, hraw, rfl⟩
-  exact FixedBytes.toByteArray_ofByteArray?_eq_some hraw
+  exact FixedBytes.toByteArray_ofByteArrayOpt_eq_some hraw
 
 /-- Converting an address to `H160` and back is lossless. -/
 @[simp]
@@ -238,9 +238,9 @@ theorem toNat_ofU256 (value : U256) : (ofU256 value).toNat = value.toNat % 2 ^ 1
   simp [ofU256]
 
 /-- Checked word conversion succeeds exactly when the word fits in 160 bits. -/
-theorem ofU256?_eq_some_iff {word : U256} {value : Address} :
-    ofU256? word = some value ↔ word.toNat < 2 ^ 160 ∧ ofU256 word = value := by
-  exact ofNat?_eq_some_iff
+theorem ofU256Opt_eq_some_iff {word : U256} {value : Address} :
+    ofU256Opt word = some value ↔ word.toNat < 2 ^ 160 ∧ ofU256 word = value := by
+  exact ofNatOpt_eq_some_iff
 
 /-- Zero-extension preserves the unsigned address value. -/
 @[simp]
@@ -259,8 +259,8 @@ theorem ofU256_toU256 (value : Address) : ofU256 value.toU256 = value := by
 
 /-- Checked conversion accepts every zero-extended address word. -/
 @[simp]
-theorem ofU256?_toU256 (value : Address) : ofU256? value.toU256 = some value := by
-  apply ofU256?_eq_some_iff.mpr
+theorem ofU256Opt_toU256 (value : Address) : ofU256Opt value.toU256 = some value := by
+  apply ofU256Opt_eq_some_iff.mpr
   rw [toNat_toU256]
   exact ⟨value.toNat_lt, ofU256_toU256 value⟩
 

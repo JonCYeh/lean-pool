@@ -42,7 +42,7 @@ def ofNat (size : ℕ) (n : ℕ) : FixedBytes size :=
   ⟨BitVec.ofNat (bitWidth size) n⟩
 
 /-- Constructs fixed bytes only when `n` fits in `size` bytes. -/
-def ofNat? (size : ℕ) (n : ℕ) : Option (FixedBytes size) :=
+def ofNatOpt (size : ℕ) (n : ℕ) : Option (FixedBytes size) :=
   if n < modulus size then some (ofNat size n) else none
 
 /-- Returns the big-endian byte string interpreted as an unsigned natural number. -/
@@ -138,7 +138,7 @@ def natToByteList : (size : ℕ) → ℕ → List UInt8
       UInt8.ofNat (n / 256 ^ size) :: natToByteList size (n % 256 ^ size)
 
 /-- Parses a big-endian byte array when its length is exactly `size`. -/
-def ofByteArray? (size : ℕ) (bytes : ByteArray) : Option (FixedBytes size) :=
+def ofByteArrayOpt (size : ℕ) (bytes : ByteArray) : Option (FixedBytes size) :=
   if bytes.size = size then some (ofNat size (byteArrayToNat bytes)) else none
 
 /-- Serializes `value` as exactly `size` bytes in big-endian order. -/
@@ -215,16 +215,16 @@ theorem toNat_lt_modulus (value : FixedBytes size) : value.toNat < modulus size 
   exact value.val.isLt
 
 /-- Checked construction succeeds exactly for representable values. -/
-theorem ofNat?_eq_some_iff {n : ℕ} {value : FixedBytes size} :
-    ofNat? size n = some value ↔ n < modulus size ∧ ofNat size n = value := by
-  simp only [ofNat?]
+theorem ofNatOpt_eq_some_iff {n : ℕ} {value : FixedBytes size} :
+    ofNatOpt size n = some value ↔ n < modulus size ∧ ofNat size n = value := by
+  simp only [ofNatOpt]
   split <;> simp_all
 
 /-- Checked construction rejects exactly the out-of-range natural numbers. -/
 @[simp]
-theorem ofNat?_eq_none_iff (size n : ℕ) :
-    ofNat? size n = none ↔ modulus size ≤ n := by
-  simp [ofNat?]
+theorem ofNatOpt_eq_none_iff (size n : ℕ) :
+    ofNatOpt size n = none ↔ modulus size ≤ n := by
+  simp [ofNatOpt]
 
 /-- The greatest fixed byte value is one below the domain cardinality. -/
 @[simp]
@@ -343,40 +343,40 @@ theorem toByteArray_size (value : FixedBytes size) : value.toByteArray.size = si
 
 /-- Exact-size parsing has a result precisely when the input length matches. -/
 @[simp]
-theorem ofByteArray?_isSome (size : ℕ) (bytes : ByteArray) :
-    (ofByteArray? size bytes).isSome = decide (bytes.size = size) := by
-  unfold ofByteArray?
+theorem ofByteArrayOpt_isSome (size : ℕ) (bytes : ByteArray) :
+    (ofByteArrayOpt size bytes).isSome = decide (bytes.size = size) := by
+  unfold ofByteArrayOpt
   split <;> simp_all
 
 /-- Exact-size parsing fails precisely when the input length differs. -/
 @[simp]
-theorem ofByteArray?_eq_none_iff (size : ℕ) (bytes : ByteArray) :
-    ofByteArray? size bytes = none ↔ bytes.size ≠ size := by
-  simp [ofByteArray?]
+theorem ofByteArrayOpt_eq_none_iff (size : ℕ) (bytes : ByteArray) :
+    ofByteArrayOpt size bytes = none ↔ bytes.size ≠ size := by
+  simp [ofByteArrayOpt]
 
 /-- Parsing returns a value exactly when the size and big-endian value agree. -/
-theorem ofByteArray?_eq_some_iff {bytes : ByteArray} {value : FixedBytes size} :
-    ofByteArray? size bytes = some value ↔
+theorem ofByteArrayOpt_eq_some_iff {bytes : ByteArray} {value : FixedBytes size} :
+    ofByteArrayOpt size bytes = some value ↔
       bytes.size = size ∧ ofNat size (byteArrayToNat bytes) = value := by
-  unfold ofByteArray?
+  unfold ofByteArrayOpt
   split <;> simp_all
 
 /-- A length-valid array parses to its big-endian numeric value. -/
-theorem ofByteArray?_eq_some_of_size (bytes : ByteArray) (h : bytes.size = size) :
-    ofByteArray? size bytes = some (ofNat size (byteArrayToNat bytes)) := by
-  simp [ofByteArray?, h]
+theorem ofByteArrayOpt_eq_some_of_size (bytes : ByteArray) (h : bytes.size = size) :
+    ofByteArrayOpt size bytes = some (ofNat size (byteArrayToNat bytes)) := by
+  simp [ofByteArrayOpt, h]
 
 /-- Parsing a serialized fixed byte value is lossless. -/
 @[simp]
-theorem ofByteArray?_toByteArray (value : FixedBytes size) :
-    ofByteArray? size value.toByteArray = some value := by
-  rw [ofByteArray?_eq_some_of_size value.toByteArray value.toByteArray_size,
+theorem ofByteArrayOpt_toByteArray (value : FixedBytes size) :
+    ofByteArrayOpt size value.toByteArray = some value := by
+  rw [ofByteArrayOpt_eq_some_of_size value.toByteArray value.toByteArray_size,
     byteArrayToNat_toByteArray, ofNat_toNat]
 
 /-- Serializing any successfully parsed exact-size input reproduces that input. -/
-theorem toByteArray_ofByteArray?_eq_some {bytes : ByteArray} {value : FixedBytes size}
-    (h : ofByteArray? size bytes = some value) : value.toByteArray = bytes := by
-  rcases ofByteArray?_eq_some_iff.mp h with ⟨hsize, hvalue⟩
+theorem toByteArray_ofByteArrayOpt_eq_some {bytes : ByteArray} {value : FixedBytes size}
+    (h : ofByteArrayOpt size bytes = some value) : value.toByteArray = bytes := by
+  rcases ofByteArrayOpt_eq_some_iff.mp h with ⟨hsize, hvalue⟩
   rw [← hvalue]
   apply byteArrayToNat_injective_of_size_eq
   · simpa using hsize.symm

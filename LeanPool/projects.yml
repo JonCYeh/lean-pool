@@ -8511,7 +8511,8 @@ projects:
           words reduced modulo the supplied modulus.
       - declaration: Lean4EVM.U256.toNat_byteAt_of_lt
         informal: >-
-          Extracting any byte position below 32 from a 256-bit word yields a value below 256.
+          For a byte index below 32, EVM BYTE returns the word's natural value divided by
+          2^(8*(31-index)), reduced modulo 256 (big-endian byte extraction).
     tags:
       - verified-algorithms
       - ethereum

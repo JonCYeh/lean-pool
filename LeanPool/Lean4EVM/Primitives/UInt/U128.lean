@@ -17,11 +17,11 @@ namespace U128
 /-- Constructs a `U128` by retaining the low 128 bits. -/
 abbrev ofNat (n : ℕ) : U128 := FixedUInt.ofNat n
 /-- Constructs a `U128` only when `n` fits in 128 bits. -/
-abbrev ofNat? (n : ℕ) : Option U128 := FixedUInt.ofNat? n
+abbrev ofNatOpt (n : ℕ) : Option U128 := FixedUInt.ofNatOpt n
 /-- Constructs a `U128` with two's-complement wrapping. -/
 abbrev ofInt (n : ℤ) : U128 := FixedUInt.ofInt n
 /-- Constructs a `U128` only from a representable nonnegative integer. -/
-abbrev ofInt? (n : ℤ) : Option U128 := FixedUInt.ofInt? n
+abbrev ofIntOpt (n : ℤ) : Option U128 := FixedUInt.ofIntOpt n
 /-- Returns the unsigned value. -/
 abbrev toNat (value : U128) : ℕ := FixedUInt.toNat value
 /-- Reinterprets the bits as a signed two's-complement integer. -/
@@ -108,8 +108,8 @@ theorem toNat_ofNat_lit (n : ℕ) [n.AtLeastTwo] :
   exact FixedUInt.toNat_ofNat_lit (α := U128) (width := 128) n
 
 /-- Narrows a `U128` when its value fits in 64 bits. -/
-def toU64? (value : U128) : Option U64 :=
-  U64.ofNat? value.toNat
+def toU64Opt (value : U128) : Option U64 :=
+  U64.ofNatOpt value.toNat
 
 /-- Returns the low 64 bits of a `U128`. -/
 def lowU64 (value : U128) : U64 :=
@@ -143,34 +143,34 @@ theorem toNat_lowU64 (value : U128) : value.lowU64.toNat = value.toNat % U64.mod
 
 /-- Checked narrowing to `U64` fails exactly for out-of-range values. -/
 @[simp]
-theorem toU64?_eq_none_iff (value : U128) :
-    value.toU64? = none ↔ U64.modulus ≤ value.toNat := by
-  exact FixedUInt.ofNat?_eq_none_iff _
+theorem toU64Opt_eq_none_iff (value : U128) :
+    value.toU64Opt = none ↔ U64.modulus ≤ value.toNat := by
+  exact FixedUInt.ofNatOpt_eq_none_iff _
 
 /-- Checked narrowing to `U64` returns the low word when the value fits. -/
-theorem toU64?_eq_some_of_lt (value : U128) (h : value.toNat < U64.modulus) :
-    value.toU64? = some value.lowU64 := by
-  simp only [toU64?, lowU64, U64.ofNat?, FixedUInt.ofNat?]
+theorem toU64Opt_eq_some_of_lt (value : U128) (h : value.toNat < U64.modulus) :
+    value.toU64Opt = some value.lowU64 := by
+  simp only [toU64Opt, lowU64, U64.ofNatOpt, FixedUInt.ofNatOpt]
   rw [ite_eq_left h]
 
 /-- Widening a `U64` and narrowing it again is lossless. -/
 @[simp]
-theorem toU64?_toU128 (value : U64) : value.toU128.toU64? = some value := by
+theorem toU64Opt_toU128 (value : U64) : value.toU128.toU64Opt = some value := by
   have h : value.toU128.toNat < U64.modulus := by
     simp only [U64.toNat_toU128]
     exact FixedUInt.toNat_lt_modulus value
-  rw [toU64?_eq_some_of_lt _ h]
+  rw [toU64Opt_eq_some_of_lt _ h]
   apply congrArg some
   apply FixedUInt.toNat_injective
   simp only [toNat_lowU64, U64.toNat_toU128]
   exact Nat.mod_eq_of_lt (FixedUInt.toNat_lt_modulus value)
 
 /-- A `U64` recovered by checked narrowing widens back to the value it came from. With
-`toU64?_toU128` this makes widening and checked narrowing mutually inverse. -/
-theorem toU128_toU64?_eq_some {value : U128} {narrowed : U64}
-    (h : value.toU64? = some narrowed) : narrowed.toU128 = value := by
-  rw [toU64?, U64.ofNat?] at h
-  rcases FixedUInt.ofNat?_eq_some_iff.mp h with ⟨hlt, hval⟩
+`toU64Opt_toU128` this makes widening and checked narrowing mutually inverse. -/
+theorem toU128_toU64Opt_eq_some {value : U128} {narrowed : U64}
+    (h : value.toU64Opt = some narrowed) : narrowed.toU128 = value := by
+  rw [toU64Opt, U64.ofNatOpt] at h
+  rcases FixedUInt.ofNatOpt_eq_some_iff.mp h with ⟨hlt, hval⟩
   apply FixedUInt.toNat_injective
   simp only [U64.toNat_toU128, ← hval, FixedUInt.toNat_ofNat]
   exact Nat.mod_eq_of_lt hlt

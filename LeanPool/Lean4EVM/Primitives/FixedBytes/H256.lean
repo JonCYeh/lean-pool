@@ -39,8 +39,8 @@ def ofNat (n : ℕ) : H256 :=
   ofFixedBytes (FixedBytes.ofNat 32 n)
 
 /-- Constructs `H256` only when `n` fits in 256 bits. -/
-def ofNat? (n : ℕ) : Option H256 :=
-  (FixedBytes.ofNat? 32 n).map ofFixedBytes
+def ofNatOpt (n : ℕ) : Option H256 :=
+  (FixedBytes.ofNatOpt 32 n).map ofFixedBytes
 
 /-- Returns the unsigned natural-number value. -/
 def toNat (value : H256) : ℕ :=
@@ -59,8 +59,8 @@ def testBit (value : H256) (index : ℕ) : Bool :=
   value.toFixedBytes.testBit index
 
 /-- Parses an exact 32-byte big-endian array. -/
-def ofByteArray? (bytes : ByteArray) : Option H256 :=
-  (FixedBytes.ofByteArray? 32 bytes).map ofFixedBytes
+def ofByteArrayOpt (bytes : ByteArray) : Option H256 :=
+  (FixedBytes.ofByteArrayOpt 32 bytes).map ofFixedBytes
 
 /-- Serializes `value` as exactly 32 big-endian bytes. -/
 def toByteArray (value : H256) : ByteArray :=
@@ -225,13 +225,13 @@ theorem lt_iff_toNat_lt (a b : H256) : a < b ↔ a.toNat < b.toNat :=
 
 /-- Checked construction fails exactly outside the 256-bit range. -/
 @[simp]
-theorem ofNat?_eq_none_iff (n : ℕ) : ofNat? n = none ↔ 2 ^ 256 ≤ n := by
-  simp [ofNat?, FixedBytes.modulus, FixedBytes.bitWidth]
+theorem ofNatOpt_eq_none_iff (n : ℕ) : ofNatOpt n = none ↔ 2 ^ 256 ≤ n := by
+  simp [ofNatOpt, FixedBytes.modulus, FixedBytes.bitWidth]
 
 /-- Checked construction succeeds exactly for representable 256-bit values. -/
-theorem ofNat?_eq_some_iff {n : ℕ} {value : H256} :
-    ofNat? n = some value ↔ n < 2 ^ 256 ∧ ofNat n = value := by
-  simp [ofNat?, ofNat, FixedBytes.ofNat?_eq_some_iff, FixedBytes.modulus,
+theorem ofNatOpt_eq_some_iff {n : ℕ} {value : H256} :
+    ofNatOpt n = some value ↔ n < 2 ^ 256 ∧ ofNat n = value := by
+  simp [ofNatOpt, ofNat, FixedBytes.ofNatOpt_eq_some_iff, FixedBytes.modulus,
     FixedBytes.bitWidth]
 
 /-- Serialization always emits 32 bytes. -/
@@ -241,22 +241,22 @@ theorem toByteArray_size (value : H256) : value.toByteArray.size = 32 := by
 
 /-- Parsing succeeds exactly for 32-byte arrays. -/
 @[simp]
-theorem ofByteArray?_isSome (bytes : ByteArray) :
-    (ofByteArray? bytes).isSome = decide (bytes.size = 32) := by
-  simp [ofByteArray?]
+theorem ofByteArrayOpt_isSome (bytes : ByteArray) :
+    (ofByteArrayOpt bytes).isSome = decide (bytes.size = 32) := by
+  simp [ofByteArrayOpt]
 
 /-- Parsing a serialized `H256` value is lossless. -/
 @[simp]
-theorem ofByteArray?_toByteArray (value : H256) :
-    ofByteArray? value.toByteArray = some value := by
-  simp [ofByteArray?, toByteArray]
+theorem ofByteArrayOpt_toByteArray (value : H256) :
+    ofByteArrayOpt value.toByteArray = some value := by
+  simp [ofByteArrayOpt, toByteArray]
 
 /-- Serializing any successfully parsed `H256` input reproduces that input. -/
-theorem toByteArray_ofByteArray?_eq_some {bytes : ByteArray} {value : H256}
-    (h : ofByteArray? bytes = some value) : value.toByteArray = bytes := by
-  simp only [ofByteArray?, Option.map_eq_some_iff] at h
+theorem toByteArray_ofByteArrayOpt_eq_some {bytes : ByteArray} {value : H256}
+    (h : ofByteArrayOpt bytes = some value) : value.toByteArray = bytes := by
+  simp only [ofByteArrayOpt, Option.map_eq_some_iff] at h
   rcases h with ⟨raw, hraw, rfl⟩
-  exact FixedBytes.toByteArray_ofByteArray?_eq_some hraw
+  exact FixedBytes.toByteArray_ofByteArrayOpt_eq_some hraw
 
 /-- Reinterpreting a hash as a word and back is lossless. -/
 @[simp]
