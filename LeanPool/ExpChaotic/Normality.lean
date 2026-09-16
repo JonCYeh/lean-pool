@@ -17,7 +17,7 @@ any special value at infinity is built into this general definition.
 For the exponential, the codomain is the Riemann sphere and the domain remains the complex
 plane. Classical complex analysis describes which locally uniform spherical limits of
 holomorphic or meromorphic functions can occur. That characterization is unnecessary here:
-`ExpChaotic.Spherical` directly rules out every possible sphere-valued limit.
+`LeanPool.ExpChaotic.Spherical` directly rules out every possible sphere-valued limit.
 
 Part of Lasse Rempe's formalisation of Shen and Rempe-Gillen's exponential-map paper,
 with generative AI assistance including Copilot, Claude, and particularly ChatGPT.
