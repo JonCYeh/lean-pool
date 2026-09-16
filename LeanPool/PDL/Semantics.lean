@@ -173,8 +173,6 @@ open vDash
 
 instance modelCanSemImplyForm {W : Type} : vDash (KripkeModel W × W) Formula :=
   vDash.mk (@evaluatePoint W)
-instance modelCanSemImplySet {W : Type} : vDash (KripkeModel W × W) (List Formula) :=
-  vDash.mk (fun ⟨M,w⟩ fs => ∀ f ∈ fs, @evaluate W M w f)
 @[simp]
 instance modelCanSemImplyList {W : Type} : vDash (KripkeModel W × W) (List Formula) :=
   vDash.mk (fun ⟨M,w⟩ fs => ∀ f ∈ fs, @evaluate W M w f)
