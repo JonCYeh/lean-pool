@@ -8528,11 +8528,8 @@ projects:
     status: verified
     provenance: human
     main_declarations:
-      - Lean4EVM.FixedUInt.toNat_add
-      - Lean4EVM.FixedUInt.toNat_mul
       - Lean4EVM.U256.toNat_addmod
       - Lean4EVM.U256.toNat_mulmod
-      - Lean4EVM.U256.toNat_byteAt_of_lt
     main_results:
       - declaration: Lean4EVM.FixedUInt.toNat_add
         informal: >-
