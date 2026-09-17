@@ -8550,20 +8550,16 @@ projects:
     status: verified
     provenance: AI
     main_declarations:
-      - euler_pentagonal_number_theorem_packaged
-      - coeff_prod_eq_pe_sub_po
-      - QSeries.jacobiTripleProduct
-      - QSeries.euler_pentagonal_number
-      - QSeries.FormalPowerSeries.jacobiTripleProduct
+      - PentagonalNumberTheorem.Franklin.euler_pentagonal_number_theorem_packaged
     main_results:
-      - declaration: euler_pentagonal_number_theorem_packaged
+      - declaration: PentagonalNumberTheorem.Franklin.euler_pentagonal_number_theorem_packaged
         informal: >-
           The primary result. For every n, either n is a generalized pentagonal number
           k(3k-1)/2 for some integer k, in which case the number of partitions of n into an
           even number of distinct parts exceeds the number with an odd number of distinct
           parts by exactly (-1)^|k|; or n is not of that form, in which case the two counts
           are equal. Proved by Franklin's sign-reversing involution.
-      - declaration: coeff_prod_eq_pe_sub_po
+      - declaration: PentagonalNumberTheorem.Franklin.coeff_prod_eq_pe_sub_po
         informal: >-
           The coefficient of X^n in the truncated product ∏_{k=1}^{n}(1 - X^k) over ℤ⟦X⟧ equals
           p_e(n) - p_o(n), the signed count of partitions of n into distinct parts. Truncating
@@ -8585,12 +8581,9 @@ projects:
     tags:
       - number-theory
       - partitions
-      - franklin-involution
       - q-series
       - pentagonal-number-theorem
       - jacobi-triple-product
-      - generating-functions
-      - formal-power-series
     msc:
       - "11P81"
       - "11P84"
