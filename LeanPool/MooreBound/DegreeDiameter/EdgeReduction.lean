@@ -236,23 +236,26 @@ def padWalk (H : SimpleGraph V) {x y : V} (p : H.Walk x y) (k : ℕ)
 
 end Route
 
-mutual
+/-- Compute both alternating edge endpoints by structural recursion on the route.
+The two functions record which coordinate is replaced first. -/
+def zigEndpoints (H : SimpleGraph V) {x y : V} {n : ℕ} (p : Route H x y n) :
+    ((a : V) → Linked H a x → (bipartiteExpansion H).edgeSet) ×
+      ((b : V) → Linked H x b → (bipartiteExpansion H).edgeSet) :=
+  match p with
+  | .nil _ => ⟨fun a ha ↦ bipartiteEdge H a x ha, fun b hb ↦ bipartiteEdge H x b hb⟩
+  | .cons h tail =>
+      let endpoints := zigEndpoints H tail
+      ⟨fun _ _ ↦ endpoints.2 x (linked_symm h), fun _ _ ↦ endpoints.1 x h⟩
 
 /-- Follow a route by first replacing the left coordinate of a represented bipartite edge. -/
 def zigFirst (H : SimpleGraph V) {x y : V} {n : ℕ} (p : Route H x y n)
     (a : V) (ha : Linked H a x) : (bipartiteExpansion H).edgeSet :=
-  match p with
-  | .nil _ => bipartiteEdge H a x ha
-  | .cons h tail => zigSecond H tail x (linked_symm h)
+  (zigEndpoints H p).1 a ha
 
 /-- Follow a route by first replacing the right coordinate of a represented bipartite edge. -/
 def zigSecond (H : SimpleGraph V) {x y : V} {n : ℕ} (p : Route H x y n)
     (b : V) (hb : Linked H x b) : (bipartiteExpansion H).edgeSet :=
-  match p with
-  | .nil _ => bipartiteEdge H x b hb
-  | .cons h tail => zigFirst H tail x h
-
-end
+  (zigEndpoints H p).2 b hb
 
 theorem zig_terminal (H : SimpleGraph V) {x y : V} {n : ℕ} (p : Route H x y n) :
     (∀ a (ha : Linked H a x),
@@ -286,18 +289,18 @@ theorem zig_terminal (H : SimpleGraph V) {x y : V} {n : ℕ} (p : Route H x y n)
         constructor
         · intro hn
           have hn' : Odd n := Nat.not_even_iff_odd.mp (Nat.even_add_one.mp hn)
-          simpa [zigFirst] using (ih.2 x (linked_symm hxx')).2 hn'
+          simpa [zigFirst, zigSecond, zigEndpoints] using (ih.2 x (linked_symm hxx')).2 hn'
         · intro hn
           have hn' : Even n := Nat.not_odd_iff_even.mp (Nat.odd_add_one.mp hn)
-          simpa [zigFirst] using (ih.2 x (linked_symm hxx')).1 hn'
+          simpa [zigFirst, zigSecond, zigEndpoints] using (ih.2 x (linked_symm hxx')).1 hn'
       · intro b hb
         constructor
         · intro hn
           have hn' : Odd n := Nat.not_even_iff_odd.mp (Nat.even_add_one.mp hn)
-          simpa [zigSecond] using (ih.1 x hxx').2 hn'
+          simpa [zigFirst, zigSecond, zigEndpoints] using (ih.1 x hxx').2 hn'
         · intro hn
           have hn' : Even n := Nat.not_odd_iff_even.mp (Nat.odd_add_one.mp hn)
-          simpa [zigSecond] using (ih.1 x hxx').1 hn'
+          simpa [zigFirst, zigSecond, zigEndpoints] using (ih.1 x hxx').1 hn'
 
 theorem zigFirst_of_even (H : SimpleGraph V) {x y : V} {n : ℕ}
     (p : Route H x y n) (a : V) (ha : Linked H a x) (hn : Even n) :
@@ -329,7 +332,7 @@ theorem edist_zig_le (H : SimpleGraph V) {x y : V} {n : ℕ} (p : Route H x y n)
         (bipartiteEdge H x b hb) (zigSecond H p b hb) ≤ (n : ℕ∞)) := by
   induction p with
   | nil x =>
-      constructor <;> intro z hz <;> simp [zigFirst, zigSecond]
+      constructor <;> intro z hz <;> simp [zigFirst, zigSecond, zigEndpoints]
   | @cons x x' y n hxx' tail ih =>
       constructor
       · intro a ha
