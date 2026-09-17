@@ -244,7 +244,7 @@ lemma coeff_prod_sumX_minus_C_eq_coeff_sumX_pow_of_degree_eq
       obtain ⟨left, right⟩ := h
       subst right
       norm_num [MvPolynomial.totalDegree]
-      intro b hb; contrapose! hb; simp_all +decide only [zero_add, coeff_sum, coeff_X,
+      intro b hb; contrapose! hb; simp_all +decide only [zero_add, coeff_X,
         Finset.sum_boole]
       rw [Finset.card_eq_zero.mpr] <;> aesop
     · rw [Finset.sum_subset (Finset.subset_univ snd.support)] <;> aesop
@@ -950,7 +950,8 @@ lemma coeff_target_eq_zero_of_vanishes_on_grid
     _root_.eq_zero_of_eval_zero_at_prod_finset R A
       (fun i => hA i ▸ Nat.lt_succ_of_le (hdegree i))
       (fun x hx => (heval x hx).trans (hQ_vanishes x hx))
-  rw [← hcoeff, hzero, coeff_zero]
+  rw [← hcoeff, hzero]
+  rfl
 
 /--
 Lemma 2.1.11 : If two polynomials P and Q are equal or their difference has a total degree less
