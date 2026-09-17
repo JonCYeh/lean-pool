@@ -18,8 +18,6 @@ unrelated later developments and LeanArchitect annotations are omitted.
 
 namespace MooreBound
 
-open PNTAsymptotics
-
 open ArithmeticFunction hiding log
 open Nat hiding log
 open _root_.Finset

@@ -3439,7 +3439,6 @@ import LeanPool.MooreBound.DegreeDiameter.Theorem11FromProposition31
 import LeanPool.MooreBound.PrimeNumberTheoremAnd.Consequences
 import LeanPool.MooreBound.PrimeNumberTheoremAnd.Fourier
 import LeanPool.MooreBound.PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support
-import LeanPool.MooreBound.PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import LeanPool.MooreBound.PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import LeanPool.MooreBound.PrimeNumberTheoremAnd.SmoothExistence
 import LeanPool.MooreBound.PrimeNumberTheoremAnd.Sobolev
