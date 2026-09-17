@@ -13,11 +13,11 @@ import Mathlib.Order.Interval.Finset.Nat
 import Mathlib.RingTheory.PowerSeries.Basic
 import Mathlib.RingTheory.PowerSeries.PiTopology
 import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.LinearCombination
-import Mathlib.Tactic.Zify
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.FieldSimp
 import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.LinearCombination
+import Mathlib.Tactic.Zify
 import LeanPool.PentagonalNumberTheoremAnalytic.Franklin.Defs
 import LeanPool.PentagonalNumberTheoremAnalytic.Franklin.Helpers
 import LeanPool.PentagonalNumberTheoremAnalytic.Franklin.Lemmas
@@ -31,6 +31,8 @@ to the algebraic identities involving generating functions.
 
 open Finset PowerSeries
 open scoped PowerSeries.WithPiTopology
+
+namespace PentagonalNumberTheorem.Franklin
 
 /-- The unrestricted partition count `p(n)`: the number of ways to write
 `n` as a sum of positive integers (with repetition allowed, order ignored). -/
@@ -225,3 +227,5 @@ theorem euler_pentagonal_number_theorem_packaged (n : ℕ) :
     rcases Nat.eq_zero_or_pos n with rfl | h
     · exact absurd ⟨0, by norm_num⟩ hP
     · exact h
+
+end PentagonalNumberTheorem.Franklin

@@ -6,18 +6,15 @@ Authors: Jonathan Conrad, Paula Muermann, Maryna Viazovska
 import LeanPool.PentagonalNumberTheoremAnalytic.QSeries.FPS
 
 /-!
-# Unit and factorisation lemmas for the formal q-Pochhammer symbol
+# FPS Euler Second Identity
 
-Infrastructure for the algebraic route to Euler's second identity in the formal power series
-ring. This module supplies the unit and factorisation facts that argument needs:
+We prove the Euler second identity purely algebraically in the formal power series ring:
+  `qPochhammerInf(-a) = Σ_{n≥0} X^{C(n,2)} · aⁿ · (qPochhammer(X, n))⁻¹`
 
-* `constantCoeff_qPochhammer_X`, `isUnit_qPochhammer_X`: `qPochhammer (X : R⟦X⟧) n` has constant
-  coefficient `1` and is therefore a unit
-* `qPochhammerInf_eq_qPochhammer_mul`, `qPochhammerInf_X_eq_qPochhammer_mul`: splitting the
-  infinite symbol into a finite prefix times a tail
-
-Euler's second identity itself is proved downstream in `FPS_Algebra.lean`, where these lemmas
-are combined with the finite q-binomial theorem and a limit in the pi topology.
+The proof uses the finite q-binomial theorem (which holds in any commutative ring)
+and takes the limit in the pi topology. The key step is showing that the
+Gaussian binomial coefficient `qBinom(N, k, X)` converges to `(qPochhammer(X, k))⁻¹`
+as N → ∞.
 -/
 
 noncomputable section

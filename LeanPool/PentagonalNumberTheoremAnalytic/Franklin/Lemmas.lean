@@ -26,17 +26,16 @@ following Franklin's involution argument.
 
 ## Main results
 
-* `DPalpha_inter_DPbeta`, `DPalpha_inter_DPspecial`, `DPbeta_inter_DPspecial`, `DP_eq_union`:
-  the classes α/β/special are pairwise disjoint and cover `distinctPartitions n`
-* `DPspecial_eq_Icc`, `DPspecial_empty_of_nonpent`: the special class is an interval at
-  generalized pentagonal `n`, and empty otherwise
-* `DPalpha_card_eq_DPbeta_card`: `alphaOp`/`betaOp` are mutually inverse, giving the bijection
-* `DPalpha_even_card_eq_DPbeta_odd_card`: the bijection flips the parity of the part count
-* `pe_minus_po_nonpent`, `pe_minus_po_pent_minus`, `pe_minus_po_pent_plus`:
-  `pe n - po n` is `0` at non-pentagonal `n` and `±1` at generalized pentagonal `n`
+* `distinct_parts_disjoint_union`: the partition classes α/β/special are disjoint with union
+* `special_partition_char`: characterization of special partitions
+* `franklin_involution_bijection`: Franklin's involution is a bijection
+* `parity_flip`: Franklin's involution flips even/odd parity
+* `signed_partition_main`: pe(n) - po(n) = (-1)^k for pentagonal n, 0 otherwise
 -/
 
 open Finset
+
+namespace PentagonalNumberTheorem.Franklin
 
 /-- α-partitions and β-partitions are disjoint. -/
 theorem DPalpha_inter_DPbeta (n : ℕ) :
@@ -505,3 +504,5 @@ theorem pe_minus_po_pent_plus (n k : ℕ) (hk : 1 ≤ k) (hn : 2 * n = 3 * k ^ 2
     (pe n : ℤ) - po n = (-1) ^ k := by
   rw [pe_minus_po_eq_special, DPspecial_pent_plus n k hk hn]
   exact signed_card_of_singleton _ k (SpkSet_card k hk)
+
+end PentagonalNumberTheorem.Franklin
