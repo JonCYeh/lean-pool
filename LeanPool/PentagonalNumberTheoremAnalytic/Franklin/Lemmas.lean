@@ -3,7 +3,19 @@ Copyright (c) 2026 Jonathan Conrad, Paula Muermann, Maryna Viazovska. All rights
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jonathan Conrad, Paula Muermann, Maryna Viazovska
 -/
-import Mathlib
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+import Mathlib.Algebra.BigOperators.Ring.Finset
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
+import Mathlib.Combinatorics.Enumerative.Partition.GenFun
+import Mathlib.Data.Finset.Powerset
+import Mathlib.Data.Nat.Choose.Basic
+import Mathlib.Order.Interval.Finset.Nat
+import Mathlib.RingTheory.PowerSeries.Basic
+import Mathlib.RingTheory.PowerSeries.PiTopology
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Positivity
 import LeanPool.PentagonalNumberTheoremAnalytic.Franklin.Defs
 import LeanPool.PentagonalNumberTheoremAnalytic.Franklin.Helpers
 /-!
@@ -14,11 +26,14 @@ following Franklin's involution argument.
 
 ## Main results
 
-* `distinct_parts_disjoint_union`: the partition classes α/β/special are disjoint with union
-* `special_partition_char`: characterization of special partitions
-* `franklin_involution_bijection`: Franklin's involution is a bijection
-* `parity_flip`: Franklin's involution flips even/odd parity
-* `signed_partition_main`: pe(n) - po(n) = (-1)^k for pentagonal n, 0 otherwise
+* `DPalpha_inter_DPbeta`, `DPalpha_inter_DPspecial`, `DPbeta_inter_DPspecial`, `DP_eq_union`:
+  the classes α/β/special are pairwise disjoint and cover `distinctPartitions n`
+* `DPspecial_eq_Icc`, `DPspecial_empty_of_nonpent`: the special class is an interval at
+  generalized pentagonal `n`, and empty otherwise
+* `DPalpha_card_eq_DPbeta_card`: `alphaOp`/`betaOp` are mutually inverse, giving the bijection
+* `DPalpha_even_card_eq_DPbeta_odd_card`: the bijection flips the parity of the part count
+* `pe_minus_po_nonpent`, `pe_minus_po_pent_minus`, `pe_minus_po_pent_plus`:
+  `pe n - po n` is `0` at non-pentagonal `n` and `±1` at generalized pentagonal `n`
 -/
 
 open Finset
