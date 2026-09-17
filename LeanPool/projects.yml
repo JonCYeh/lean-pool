@@ -8545,7 +8545,7 @@ projects:
         - Maryna Viazovska
       url: https://viazovska.github.io/PentagonalNumberTheorem
       github_repo: viazovska/PentagonalNumberTheorem
-      revision: "4554de83cf8adcefd45f03fccc338a75e8b274ad"
+      revision: "5c3413265fcb44f74e67ebb5abddcac4b82e611b"
     license: Apache-2.0
     status: verified
     provenance: AI
